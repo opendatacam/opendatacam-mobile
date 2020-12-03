@@ -3,6 +3,8 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
     super();
 
     Capacitor.Plugins.SplashScreen.hide();
+
+    Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
     
     const root = this.attachShadow({ mode: 'open' });
 

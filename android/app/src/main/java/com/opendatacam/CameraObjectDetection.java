@@ -1,22 +1,89 @@
 package com.opendatacam;
 
+import android.Manifest;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.graphics.Color;
+import android.graphics.Point;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.Display;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+
+import androidx.camera.core.CameraX;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 
-@NativePlugin()
+@NativePlugin(
+    permissions={
+            Manifest.permission.CAMERA
+    }
+)
 public class CameraObjectDetection extends Plugin {
+
+    private CameraActivity fragment;
+    private int containerViewId = 20;
 
     @PluginMethod()
     public void startObjectDetection(PluginCall call) {
-        // 1. Start camera preview if not started
 
-        // use intend
-        //Intent intent = new Intent(Intent.ACTION_VIEW);
-        //getActivity().startActivity(intent);
-        //
+        final Integer x = call.getInt("x", 0);
+        final Integer y = call.getInt("y", 0);
+
+        fragment = new CameraActivity();
+
+        // 1. Start camera preview if not started
+        bridge.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Set fragment to the right dimensions
+                DisplayMetrics metrics = getBridge().getActivity().getResources().getDisplayMetrics();
+                // offset
+                int computedX = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x, metrics);
+                int computedY = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y, metrics);
+
+                // size
+                int computedWidth;
+                int computedHeight;
+                int computedPaddingBottom = 0;
+
+                Display defaultDisplay = getBridge().getActivity().getWindowManager().getDefaultDisplay();
+                final Point size = new Point();
+                defaultDisplay.getSize(size);
+
+                computedWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, size.x, metrics);
+                computedHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, size.y, metrics) - computedPaddingBottom;
+
+                fragment.setRect(computedX, computedY, computedWidth, computedHeight);
+
+                // Create container view
+                FrameLayout containerView = getBridge().getActivity().findViewById(containerViewId);
+                if(containerView == null){
+                    containerView = new FrameLayout(getActivity().getApplicationContext());
+                    containerView.setId(containerViewId);
+
+                    getBridge().getWebView().setBackgroundColor(Color.TRANSPARENT);
+                    ((ViewGroup)getBridge().getWebView().getParent()).addView(containerView);
+
+                    // to back
+                    getBridge().getWebView().getParent().bringChildToFront(getBridge().getWebView());
+
+                    FragmentManager fragmentManager = getBridge().getActivity().getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.add(containerView.getId(), fragment);
+                    fragmentTransaction.commit();
+
+                    call.success();
+                } else {
+                    call.reject("camera already started");
+                }
+            }
+        });
 
         // 2. Apply detect() on each frame
 
