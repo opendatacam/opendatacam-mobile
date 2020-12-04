@@ -1,28 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  tools:context="com.opendatacam.CameraActivity"
-  android:id="@+id/frame_container"
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:layout_gravity="center_horizontal|top"
-  android:layout_weight=".7">
-
-  <RelativeLayout
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frame_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal|top"
-    android:id="@+id/frame_camera_cont"
-    android:layout_gravity="center_horizontal|top">
+    android:layout_gravity="center_horizontal|top"
+    android:layout_weight=".7"
+    tools:context="com.opendatacam.CameraActivity">
 
-    <TextureView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/view_finder"
-        android:layout_gravity="center|bottom"
-        android:adjustViewBounds="true"
-        android:scaleType="fitXY" />
+  <androidx.camera.view.PreviewView
+      android:id="@+id/preview_view"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent" />
 
-  </RelativeLayout>
 </FrameLayout>

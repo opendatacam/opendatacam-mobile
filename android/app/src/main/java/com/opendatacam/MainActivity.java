@@ -9,8 +9,6 @@ import java.util.ArrayList;
 
 public class MainActivity extends BridgeActivity {
 
-  private CameraActivity fragment;
-
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

@@ -1,8 +1,7 @@
 package com.opendatacam;
 
 import android.Manifest;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+
 import android.graphics.Color;
 import android.graphics.Point;
 import android.util.DisplayMetrics;
@@ -11,9 +10,9 @@ import android.view.Display;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import androidx.camera.core.CameraX;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -37,7 +36,7 @@ public class CameraObjectDetection extends Plugin {
 
         fragment = new CameraActivity();
 
-        // 1. Start camera preview if not started
+        // 1. Start camera preview if not start
         bridge.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -73,7 +72,7 @@ public class CameraObjectDetection extends Plugin {
                     // to back
                     getBridge().getWebView().getParent().bringChildToFront(getBridge().getWebView());
 
-                    FragmentManager fragmentManager = getBridge().getActivity().getFragmentManager();
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.add(containerView.getId(), fragment);
                     fragmentTransaction.commit();

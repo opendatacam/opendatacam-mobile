@@ -1,18 +1,28 @@
 package com.opendatacam;
 
-import android.app.Fragment;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.util.Size;
 import android.view.LayoutInflater;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
 import androidx.camera.core.CameraX;
 import androidx.camera.core.Preview;
-import androidx.camera.core.PreviewConfig;
+
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
+
+import com.google.common.util.concurrent.ListenableFuture;
+
+import java.util.concurrent.ExecutionException;
+
 
 public class CameraActivity extends Fragment {
 
@@ -24,88 +34,45 @@ public class CameraActivity extends Fragment {
     public int y;
 
     private String appResourcesPackage;
-    private TextureView viewFinder;
-
-    public static CameraX.LensFacing CAMERA_ID = CameraX.LensFacing.BACK;
+    private PreviewView previewView;
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
 
     // Constructor
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         appResourcesPackage = getActivity().getPackageName();
-
         // Inflate the layout for this fragment
         view = inflater.inflate(getResources().getIdentifier("camera_activity", "layout", appResourcesPackage), container, false);
-        viewFinder = view.findViewById(R.id.view_finder);
-        createCameraPreview();
+        previewView = view.findViewById(R.id.preview_view);
+
+        cameraProviderFuture = ProcessCameraProvider.getInstance(getActivity());
+
+        cameraProviderFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                createCameraPreview(cameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                // No errors need to be handled for this Future.
+                // This should never be reached.
+            }
+        }, ContextCompat.getMainExecutor(getActivity()));
+
         return view;
     }
 
-    public void createCameraPreview() {
+    public void createCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
 
-        CameraX.unbindAll();
-
-        // CURRENT TRY, RENDER THE CAMERA PREVIEW of CameraX IN THE viewFinder box in the fragment from the capacitor preview plugin
-        // Compile, but can't see the video... need to debug what is going wrong
-        // See if the "overlay" is rendering, maybe by giving it a color
-        // if so, then figure out why the SurfaceTexture isn't rendering the video frames.
-
-        // 1. preview This is responsible to display the preview on the bottom left.. not sure we want to keep this
-        // but seems it is the preview that is fed to the neural network.. that would make sense as the resolution is shrinked down
-
-        PreviewConfig previewConfig = new PreviewConfig.Builder()
-                .setLensFacing(CAMERA_ID)
-//                .setTargetAspectRatio(Rational.NEGATIVE_INFINITY)  // 宽高比
-                .setTargetResolution(new Size(480, 640))  // 分辨率
+        Preview preview = new Preview.Builder()
                 .build();
 
-        Preview preview = new Preview(previewConfig);
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
 
-        // TODO keep copying code from the YOLOv5 project.. but adapting where the camera display is using
-        // the example from the cameraPreview capacitor plugin
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-        // This is responsible to display the preview on the bottom left.. not sure we want to keep this
-        preview.setOnPreviewOutputUpdateListener(new Preview.OnPreviewOutputUpdateListener() {
-            @Override
-            public void onUpdated(Preview.PreviewOutput output) {
-                ViewGroup parent = (ViewGroup) viewFinder.getParent();
-                parent.removeView(viewFinder);
-                parent.addView(viewFinder, 0);
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview);
 
-                viewFinder.setSurfaceTexture(output.getSurfaceTexture());
-                updateTransform();
-            }
-        });
-        //DetectAnalyzer detectAnalyzer = new DetectAnalyzer();
-        //CameraX.bindToLifecycle((LifecycleOwner) this, preview, gainAnalyzer(detectAnalyzer));
-
-
-        // THIS IS CODE FROM CameraPreview capacitor plugin
-        // like in the example CameraPreview capacitor plugin
-        // CameraPreview.java startCamera method
-
-        // set a dimension to the fragment to the height and width of device
-        // then create a container view with transparent background
-        // the fragment beiing the CameraActivity class with the camera rendering into it
-        // see how to do the same using the CameraX API
-
-
-
-    }
-
-    private void updateTransform() {
-        Matrix matrix = new Matrix();
-        // Compute the center of the view finder
-        float centerX = viewFinder.getWidth() / 2f;
-        float centerY = viewFinder.getHeight() / 2f;
-
-        float[] rotations = {0, 90, 180, 270};
-        // Correct preview output to account for display rotation
-        float rotationDegrees = rotations[viewFinder.getDisplay().getRotation()];
-
-        matrix.postRotate(-rotationDegrees, centerX, centerY);
-
-        // Finally, apply transformations to our TextureView
-        viewFinder.setTransform(matrix);
     }
 
     public void setRect(int x, int y, int width, int height){
