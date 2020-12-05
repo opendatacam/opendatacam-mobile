@@ -103,6 +103,7 @@ public class CameraActivity extends Fragment {
                 // insert your code here.
                 System.out.println("imageAnalysis loop");
                 detectOnModel(image);
+                image.close();
             }
         });
 
@@ -182,7 +183,7 @@ public class CameraActivity extends Fragment {
                 Bitmap bitmap = Bitmap.createBitmap(bitmapsrc, 0, 0, width, height);
                 System.out.println("Detect loop");
                 //isDetectingOnCamera.set(false);
-                //detect(bitmap);
+                detect(bitmap);
             }
         });
     }
@@ -191,7 +192,7 @@ public class CameraActivity extends Fragment {
         Box[] result = null;
 
         System.out.println("detecting on frame using YOLOv4.detect()");
-
+        // Here it fails
         result = YOLOv4.detect(image, threshold, nms_threshold);
 
         System.out.println("detecting on frame sucess return result");
