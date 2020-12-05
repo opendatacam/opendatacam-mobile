@@ -43,4 +43,16 @@ public class Box {
         Random random = new Random(label);
         return Color.argb(255,random.nextInt(256),random.nextInt(256),random.nextInt(256));
     }
+
+    @Override
+    public String toString() {
+        return "Box{" +
+                "x0=" + x0 +
+                ", y0=" + y0 +
+                ", x1=" + x1 +
+                ", y1=" + y1 +
+                ", label=" + label +
+                ", score=" + score +
+                '}';
+    }
 }

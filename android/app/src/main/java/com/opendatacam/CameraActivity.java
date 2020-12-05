@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -198,6 +199,7 @@ public class CameraActivity extends Fragment {
         result = YOLOv4.detect(image, threshold, nms_threshold);
 
         System.out.println("detecting on frame sucess return result");
+        System.out.println(Arrays.toString(result));
 
         //isDetectingOnCamera.set(false);
 
