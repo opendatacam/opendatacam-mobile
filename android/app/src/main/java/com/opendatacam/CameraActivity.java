@@ -68,6 +68,8 @@ public class CameraActivity extends Fragment {
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
+        YOLOv4.init(getActivity().getAssets(), 0, false);
+
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
