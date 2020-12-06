@@ -9,10 +9,12 @@ import android.graphics.YuvImage;
 import android.os.Bundle;
 import android.util.Size;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.CameraX;
@@ -38,7 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class CameraActivity extends Fragment {
+public class CameraActivityLegacy extends Fragment {
 
     private View view;
 
@@ -95,7 +97,7 @@ public class CameraActivity extends Fragment {
 
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(480, 640))
+                        //.setTargetResolution(new Size(480, 640))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
@@ -120,11 +122,17 @@ public class CameraActivity extends Fragment {
 
     }
 
+    // TODO add on destroy view
+
     public void setRect(int x, int y, int width, int height){
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        System.out.println("width");
+        System.out.println(width);
+        System.out.println("height");
+        System.out.println(height);
     }
 
     private byte[] imagetToNV21(ImageProxy image) {
@@ -205,4 +213,6 @@ public class CameraActivity extends Fragment {
 
         return result;
     }
+
+    // TODO on destroy
 }

@@ -58,13 +58,19 @@ public class CameraObjectDetection extends Plugin {
                 computedWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, size.x, metrics);
                 computedHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, size.y, metrics) - computedPaddingBottom;
 
-                fragment.setRect(computedX, computedY, computedWidth, computedHeight);
+                System.out.println("Width and height of layout");
+                System.out.println(computedWidth);
+                System.out.println(computedHeight);
+
+                //fragment.setRect(computedX, computedY, computedWidth, computedHeight);
 
                 // Create container view
+                // this container view, needs to be fullscreen
                 FrameLayout containerView = getBridge().getActivity().findViewById(containerViewId);
                 if(containerView == null){
                     containerView = new FrameLayout(getActivity().getApplicationContext());
                     containerView.setId(containerViewId);
+                    containerView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
                     getBridge().getWebView().setBackgroundColor(Color.TRANSPARENT);
                     ((ViewGroup)getBridge().getWebView().getParent()).addView(containerView);
