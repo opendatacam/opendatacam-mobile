@@ -2,20 +2,25 @@ package com.opendatacam
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.IntentFilter
+import android.graphics.*
 import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.camera.core.*
+import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -31,12 +36,15 @@ class CameraActivity : Fragment() {
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
-    private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private var camera: Camera? = null
 
     private val TAG = "CameraActivity"
     private val RATIO_4_3_VALUE = 4.0 / 3.0
     private val RATIO_16_9_VALUE = 16.0 / 9.0
+
+    private var threshold = 0.3
+    private var nmsThreshold = 0.7
 
     private val displayManager by lazy {
         requireContext().getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
@@ -140,6 +148,7 @@ class CameraActivity : Fragment() {
     }
 
     /** Declare and bind preview, capture and analysis use cases */
+    @SuppressLint("UnsafeExperimentalUsageError")
     private fun bindCameraUseCases() {
 
         // Get screen metrics used to setup camera for full screen resolution
@@ -169,11 +178,38 @@ class CameraActivity : Fragment() {
         // ImageAnalysis
         imageAnalyzer = ImageAnalysis.Builder()
                 // We request aspect ratio but no resolution
-                .setTargetAspectRatio(screenAspectRatio)
+                //.setTargetAspectRatio(screenAspectRatio)
                 // Set initial target rotation, we will have to call this again if rotation changes
                 // during the lifecycle of this use case
                 .setTargetRotation(rotation)
+                .setTargetResolution(Size(480, 640))
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
+
+        var frameCounter = 0
+        var lastFpsTimestamp = System.currentTimeMillis()
+        val converter = YuvToRgbConverter(requireContext())
+
+        imageAnalyzer!!.setAnalyzer(cameraExecutor, ImageAnalysis.Analyzer { image ->
+
+            val bitmapsrc = imageToBitmap(image)
+            val matrix = Matrix()
+            //matrix.postRotate(rotationDegrees.toFloat())
+            val bitmap = Bitmap.createBitmap(bitmapsrc, 0, 0, bitmapsrc.width, bitmapsrc.height, matrix, false)
+
+            detect(imageToBitmap(image));
+
+            // Compute the FPS of the entire pipeline
+            val frameCount = 10
+            if (++frameCounter % frameCount == 0) {
+                frameCounter = 0
+                val now = System.currentTimeMillis()
+                val delta = now - lastFpsTimestamp
+                val fps = 1000 * frameCount.toFloat() / delta
+                Log.d(TAG, "FPS: ${"%.02f".format(fps)}")
+                lastFpsTimestamp = now
+            }
+        })
 
         // Must unbind the use-cases before rebinding them
         cameraProvider.unbindAll()
@@ -189,6 +225,51 @@ class CameraActivity : Fragment() {
         } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
+    }
+
+    protected fun detect(image: Bitmap?): Array<Box?>? {
+        var result: Array<Box?>? = null
+        println("detecting on frame using YOLOv4.detect()")
+        // Here it fails
+        result = YOLOv4.detect(image, threshold, nmsThreshold)
+        println("detecting on frame sucess return result")
+        println(Arrays.toString(result))
+
+        //isDetectingOnCamera.set(false);
+        return result
+    }
+
+    private fun imageToBitmap(image: ImageProxy): Bitmap {
+        val nv21 = imagetToNV21(image)
+        val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
+        val out = ByteArrayOutputStream()
+        yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 100, out)
+        val imageBytes = out.toByteArray()
+        try {
+            out.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    }
+
+    private fun imagetToNV21(image: ImageProxy): ByteArray {
+        val planes = image.planes
+        val y = planes[0]
+        val u = planes[1]
+        val v = planes[2]
+        val yBuffer = y.buffer
+        val uBuffer = u.buffer
+        val vBuffer = v.buffer
+        val ySize = yBuffer.remaining()
+        val uSize = uBuffer.remaining()
+        val vSize = vBuffer.remaining()
+        val nv21 = ByteArray(ySize + uSize + vSize)
+        // U and V are swapped
+        yBuffer[nv21, 0, ySize]
+        vBuffer[nv21, ySize, vSize]
+        uBuffer[nv21, ySize + vSize, uSize]
+        return nv21
     }
 
     /**

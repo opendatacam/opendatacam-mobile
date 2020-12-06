@@ -34,6 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,6 +59,12 @@ public class CameraActivityLegacy extends Fragment {
     ExecutorService cameraExecutor;
 
     private double threshold = 0.3, nms_threshold = 0.7;
+
+    private long startTime = 0;
+    private long endTime = 0;
+
+    double total_fps = 0;
+    int fps_count = 0;
 
     // Constructor
     @Override
@@ -107,8 +114,20 @@ public class CameraActivityLegacy extends Fragment {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
                 // insert your code here.
                 System.out.println("imageAnalysis loop");
+
+                startTime = System.currentTimeMillis();
+
                 detectOnModel(image);
                 image.close();
+
+                endTime = System.currentTimeMillis();
+                long dur = endTime - startTime;
+                float fps = (float) (1000.0 / dur);
+                total_fps = (total_fps == 0) ? fps : (total_fps + fps);
+                fps_count++;
+                System.out.println(String.format(Locale.ENGLISH,
+                        "%s\nSize: %dx%d\nTime: %.3f s\nFPS: %.3f\nAVG_FPS: %.3f",
+                        "yolov4 tiny", height, width, dur / 1000.0, fps, (float) total_fps / fps_count));
             }
         });
 

@@ -25,47 +25,22 @@ import com.getcapacitor.PluginMethod;
 )
 public class CameraObjectDetection extends Plugin {
 
-    private CameraActivity fragment;
+    private CameraActivityLegacy fragment;
     private int containerViewId = 20;
 
     @PluginMethod()
     public void startObjectDetection(PluginCall call) {
 
-        final Integer x = call.getInt("x", 0);
-        final Integer y = call.getInt("y", 0);
-
-        fragment = new CameraActivity();
+        fragment = new CameraActivityLegacy();
 
         // 1. Start camera preview if not start
         bridge.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                // Set fragment to the right dimensions
-                DisplayMetrics metrics = getBridge().getActivity().getResources().getDisplayMetrics();
-                // offset
-                int computedX = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x, metrics);
-                int computedY = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y, metrics);
-
-                // size
-                int computedWidth;
-                int computedHeight;
-                int computedPaddingBottom = 0;
-
                 Display defaultDisplay = getBridge().getActivity().getWindowManager().getDefaultDisplay();
                 final Point size = new Point();
                 defaultDisplay.getSize(size);
-
-                computedWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, size.x, metrics);
-                computedHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, size.y, metrics) - computedPaddingBottom;
-
-                System.out.println("Width and height of layout");
-                System.out.println(computedWidth);
-                System.out.println(computedHeight);
-
-                //fragment.setRect(computedX, computedY, computedWidth, computedHeight);
-
                 // Create container view
-                // this container view, needs to be fullscreen
                 FrameLayout containerView = getBridge().getActivity().findViewById(containerViewId);
                 if(containerView == null){
                     containerView = new FrameLayout(getActivity().getApplicationContext());
@@ -89,21 +64,6 @@ public class CameraObjectDetection extends Plugin {
                 }
             }
         });
-
-        // 2. Apply detect() on each frame
-
-        // 3. Return data from each frame
-        // Send each frameData back to js with events
-        // Will listen from js code with something like this
-        // Plugins.CameraObjectDetection.addListener('frameData', (data) => {
-        //  console.log('frameData was fired');
-        //});
-        // Emit from java with something like:
-        //JSObject ret = new JSObject();
-        //ret.put("value", "some value");
-        //notifyListeners("frameData", ret);
-
-        call.success();
     }
 
     @PluginMethod()
