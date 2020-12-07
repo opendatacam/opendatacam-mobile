@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class CameraActivityLegacy extends Fragment {
+public class CameraActivity extends Fragment {
 
     private View view;
 
@@ -64,12 +64,6 @@ public class CameraActivityLegacy extends Fragment {
     ExecutorService cameraExecutor;
 
     private double threshold = 0.3, nms_threshold = 0.7;
-
-    private long startTime = 0;
-    private long endTime = 0;
-
-    double total_fps = 0;
-    int fps_count = 0;
 
     // Constructor
     @Override
@@ -116,26 +110,19 @@ public class CameraActivityLegacy extends Fragment {
             @Override
             public void analyze(@NonNull ImageProxy image) {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
-                // insert your code here.
-                startTime = System.currentTimeMillis();
+                long start = System.currentTimeMillis();
 
                 detectOnModel(image, rotationDegrees);
                 image.close();
 
-                endTime = System.currentTimeMillis();
-                long dur = endTime - startTime;
-                float fps = (float) (1000.0 / dur);
-                total_fps = (total_fps == 0) ? fps : (total_fps + fps);
-                fps_count++;
-                System.out.println(String.format(Locale.ENGLISH,
-                        "%s\nSize: %dx%d\nTime: %.3f s\nFPS: %.3f\nAVG_FPS: %.3f",
-                        "yolov4 tiny", height, width, dur / 1000.0, fps, (float) total_fps / fps_count));
+                final long dur = System.currentTimeMillis() - start;
+                System.out.println(String.format(Locale.CHINESE, "%s\nSize: %dx%d\nTime: %.3f s\nFPS: %.3f",
+                        "tinyYOLO", height, width, dur / 1000.0, 1000.0f / dur));
             }
         });
 
         // Must unbind the use-cases before rebinding them
         cameraProvider.unbindAll();
-
 
         cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
 
@@ -144,17 +131,6 @@ public class CameraActivityLegacy extends Fragment {
     }
 
     // TODO add on destroy view
-
-    public void setRect(int x, int y, int width, int height){
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        System.out.println("width");
-        System.out.println(width);
-        System.out.println("height");
-        System.out.println(height);
-    }
 
     private byte[] imagetToNV21(ImageProxy image) {
         ImageProxy.PlaneProxy[] planes = image.getPlanes();
@@ -224,12 +200,12 @@ public class CameraActivityLegacy extends Fragment {
     protected Box[] detect(Bitmap image) {
         Box[] objectsDetected = null;
 
-        System.out.println("detecting on frame using YOLOv4.detect()");
-        // Here it fails
+        //System.out.println("detecting on frame using YOLOv4.detect()");
+
         objectsDetected = YOLOv4.detect(image, threshold, nms_threshold);
 
-        System.out.println("detecting on frame sucess return result");
-        System.out.println(Arrays.toString(objectsDetected));
+        //System.out.println("detecting on frame sucess return result");
+        //System.out.println(Arrays.toString(objectsDetected));
 
         Gson gson = new Gson();
         String objectsDetectedJSON = gson.toJson(objectsDetected);
@@ -244,5 +220,4 @@ public class CameraActivityLegacy extends Fragment {
         return objectsDetected;
     }
 
-    // TODO on destroy
 }

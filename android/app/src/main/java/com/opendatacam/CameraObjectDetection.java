@@ -5,8 +5,6 @@ import android.Manifest;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.Display;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -22,8 +20,6 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 
-import org.json.JSONException;
-
 @NativePlugin(
     permissions={
             Manifest.permission.CAMERA
@@ -31,13 +27,13 @@ import org.json.JSONException;
 )
 public class CameraObjectDetection extends Plugin {
 
-    private CameraActivityLegacy fragment;
+    private CameraActivity fragment;
     private int containerViewId = 20;
 
     @PluginMethod()
     public void startObjectDetection(PluginCall call) {
 
-        fragment = new CameraActivityLegacy();
+        fragment = new CameraActivity();
 
         // 1. Start camera preview if not start
         bridge.getActivity().runOnUiThread(new Runnable() {
