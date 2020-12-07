@@ -109,7 +109,6 @@ public class CameraActivityLegacy extends Fragment {
 
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
-                        //.setTargetResolution(new Size(480, 640))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
@@ -118,11 +117,9 @@ public class CameraActivityLegacy extends Fragment {
             public void analyze(@NonNull ImageProxy image) {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
                 // insert your code here.
-                System.out.println("imageAnalysis loop");
-
                 startTime = System.currentTimeMillis();
 
-                detectOnModel(image);
+                detectOnModel(image, rotationDegrees);
                 image.close();
 
                 endTime = System.currentTimeMillis();
@@ -194,7 +191,7 @@ public class CameraActivityLegacy extends Fragment {
         return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
     }
 
-    private void detectOnModel(ImageProxy image) {
+    private void detectOnModel(ImageProxy image, final int rotationDegrees) {
         /*
         if (isDetectingOnCamera.get()) {
             return;
@@ -213,10 +210,11 @@ public class CameraActivityLegacy extends Fragment {
         cameraExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                Matrix matrix = new Matrix();
+                matrix.postRotate(rotationDegrees);
                 width = bitmapsrc.getWidth();
                 height = bitmapsrc.getHeight();
-                Bitmap bitmap = Bitmap.createBitmap(bitmapsrc, 0, 0, width, height);
-                System.out.println("Detect loop");
+                Bitmap bitmap = Bitmap.createBitmap(bitmapsrc, 0, 0, width, height, matrix, false);
                 //isDetectingOnCamera.set(false);
                 detect(bitmap);
             }
