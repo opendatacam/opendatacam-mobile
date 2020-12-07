@@ -4,19 +4,25 @@ import android.Manifest;
 
 import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentResultListener;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+
+import org.json.JSONException;
 
 @NativePlugin(
     permissions={
@@ -31,7 +37,7 @@ public class CameraObjectDetection extends Plugin {
     @PluginMethod()
     public void startObjectDetection(PluginCall call) {
 
-        fragment = new CameraActivityLegacy(getBridge());
+        fragment = new CameraActivityLegacy();
 
         // 1. Start camera preview if not start
         bridge.getActivity().runOnUiThread(new Runnable() {
@@ -57,6 +63,20 @@ public class CameraObjectDetection extends Plugin {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.add(containerView.getId(), fragment);
                     fragmentTransaction.commit();
+
+                    // Listen for frameData
+                    fragmentManager.setFragmentResultListener("frameData", getActivity(), new FragmentResultListener() {
+                        @Override
+                        public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+                            // We use a String here, but any type that can be put in a Bundle is supported
+                            String frameDataJSONString = bundle.getString("jsonData");
+                            JSObject frameData = new JSObject();
+                            frameData.put("frameData", frameDataJSONString);
+                            // Do something with the result
+                            notifyListeners("frameData", frameData);
+                        }
+                    });
+
 
                     call.success();
                 } else {

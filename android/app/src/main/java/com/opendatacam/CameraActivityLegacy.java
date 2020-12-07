@@ -49,7 +49,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CameraActivityLegacy extends Fragment {
 
     private View view;
-    private Bridge capacitorBridge;
 
     public int width;
     public int height;
@@ -71,10 +70,6 @@ public class CameraActivityLegacy extends Fragment {
 
     double total_fps = 0;
     int fps_count = 0;
-
-    public CameraActivityLegacy(Bridge bridge) {
-        capacitorBridge = bridge;
-    }
 
     // Constructor
     @Override
@@ -241,9 +236,12 @@ public class CameraActivityLegacy extends Fragment {
         Gson gson = new Gson();
         String objectsDetectedJSON = gson.toJson(objectsDetected);
 
-        //isDetectingOnCamera.set(false);
-        capacitorBridge.triggerWindowJSEvent("frameData", objectsDetectedJSON);
+        Bundle result = new Bundle();
+        result.putString("jsonData", objectsDetectedJSON);
+        getParentFragmentManager().setFragmentResult("frameData", result);
 
+
+        //isDetectingOnCamera.set(false);
 
         return objectsDetected;
     }
