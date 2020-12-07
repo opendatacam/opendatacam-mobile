@@ -31,7 +31,7 @@ public class CameraObjectDetection extends Plugin {
     @PluginMethod()
     public void startObjectDetection(PluginCall call) {
 
-        fragment = new CameraActivityLegacy();
+        fragment = new CameraActivityLegacy(getBridge());
 
         // 1. Start camera preview if not start
         bridge.getActivity().runOnUiThread(new Runnable() {

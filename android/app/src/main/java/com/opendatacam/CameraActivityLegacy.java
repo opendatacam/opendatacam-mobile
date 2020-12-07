@@ -28,7 +28,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.getcapacitor.Bridge;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,6 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CameraActivityLegacy extends Fragment {
 
     private View view;
+    private Bridge capacitorBridge;
 
     public int width;
     public int height;
@@ -65,6 +71,10 @@ public class CameraActivityLegacy extends Fragment {
 
     double total_fps = 0;
     int fps_count = 0;
+
+    public CameraActivityLegacy(Bridge bridge) {
+        capacitorBridge = bridge;
+    }
 
     // Constructor
     @Override
@@ -219,18 +229,23 @@ public class CameraActivityLegacy extends Fragment {
     }
 
     protected Box[] detect(Bitmap image) {
-        Box[] result = null;
+        Box[] objectsDetected = null;
 
         System.out.println("detecting on frame using YOLOv4.detect()");
         // Here it fails
-        result = YOLOv4.detect(image, threshold, nms_threshold);
+        objectsDetected = YOLOv4.detect(image, threshold, nms_threshold);
 
         System.out.println("detecting on frame sucess return result");
-        System.out.println(Arrays.toString(result));
+        System.out.println(Arrays.toString(objectsDetected));
+
+        Gson gson = new Gson();
+        String objectsDetectedJSON = gson.toJson(objectsDetected);
 
         //isDetectingOnCamera.set(false);
+        capacitorBridge.triggerWindowJSEvent("frameData", objectsDetectedJSON);
 
-        return result;
+
+        return objectsDetected;
     }
 
     // TODO on destroy

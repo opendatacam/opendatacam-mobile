@@ -5,6 +5,10 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
     Capacitor.Plugins.SplashScreen.hide();
 
     Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
+
+    window.addEventListener("frameData", (data) => {
+      console.log(data);
+    })
     
     const root = this.attachShadow({ mode: 'open' });
 
