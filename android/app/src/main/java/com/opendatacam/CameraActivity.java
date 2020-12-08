@@ -1,5 +1,6 @@
 package com.opendatacam;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -8,10 +9,13 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Bundle;
 import android.util.Size;
+import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.AspectRatio;
@@ -55,6 +59,9 @@ public class CameraActivity extends Fragment {
     public int x;
     public int y;
 
+    private ImageAnalysis imageAnalysis = null;
+    private Preview preview = null;
+
     private String appResourcesPackage;
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
@@ -89,19 +96,56 @@ public class CameraActivity extends Fragment {
             }
         }, ContextCompat.getMainExecutor(getActivity()));
 
+        // See: https://developer.android.com/training/camerax/orientation-rotation
+        OrientationEventListener mOrientationListener = new OrientationEventListener(
+                getContext()) {
+            @SuppressLint("UnsafeExperimentalUsageError")
+            @Override
+            public void onOrientationChanged(int orientation) {
+
+                //System.out.println(orientation);
+
+                if (imageAnalysis != null) {
+                    if (orientation >= 45 && orientation < 135) {
+                        System.out.println("Change imageAnalysis rotation");
+                        imageAnalysis.setTargetRotation(Surface.ROTATION_270);
+                        preview.setTargetRotation(Surface.ROTATION_270);
+                    } else if (orientation >= 135 && orientation < 225) {
+                        System.out.println("Change imageAnalysis rotation");
+                        imageAnalysis.setTargetRotation(Surface.ROTATION_180);
+                        preview.setTargetRotation(Surface.ROTATION_180);
+                    } else if (orientation >= 225 && orientation < 315) {
+                        System.out.println("Change imageAnalysis rotation");
+                        imageAnalysis.setTargetRotation(Surface.ROTATION_90);
+                        preview.setTargetRotation(Surface.ROTATION_90);
+                    } else {
+                        System.out.println("Change imageAnalysis rotation");
+                        imageAnalysis.setTargetRotation(Surface.ROTATION_0);
+                        preview.setTargetRotation(Surface.ROTATION_0);
+                    }
+                }
+
+            }
+
+        };
+
+        if (mOrientationListener.canDetectOrientation()) {
+            mOrientationListener.enable();
+        }
+
         return view;
     }
 
     public void createCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
 
-        Preview preview = new Preview.Builder()
+        preview = new Preview.Builder()
                 .build();
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
 
-        ImageAnalysis imageAnalysis =
+        imageAnalysis =
                 new ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
