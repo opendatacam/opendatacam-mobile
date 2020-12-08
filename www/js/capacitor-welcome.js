@@ -13,13 +13,11 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
       ctx.fillStyle = "#FF0000";
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       data.map((object) => {
-        var objectWidth = object.x1 -  object.x0;
-        var objectHeight = object.y1 -  object.y0;
         var scaledObject = {
-          x: canvas.width * object.x0 / 480,
-          y: canvas.height * object.y0 / 640,
-          width: canvas.width * objectWidth / 480,
-          height: canvas.height * objectHeight / 640
+          x: canvas.width * object.x,
+          y: canvas.height * object.y,
+          width: canvas.width * object.width ,
+          height: canvas.height * object.height
         }
         ctx.fillRect(scaledObject.x, scaledObject.y,scaledObject.width, scaledObject.height);
       })

@@ -249,7 +249,7 @@ public class CameraActivity extends Fragment {
         objectsDetected = YOLOv4.detect(image, threshold, nms_threshold);
 
         //System.out.println("detecting on frame sucess return result");
-        //System.out.println(Arrays.toString(objectsDetected));
+        System.out.println(Arrays.toString(objectsDetected));
 
         Gson gson = new Gson();
         String objectsDetectedJSON = gson.toJson(objectsDetected);

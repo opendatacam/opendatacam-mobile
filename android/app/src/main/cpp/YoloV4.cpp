@@ -66,10 +66,10 @@ YoloV4::decode_infer(ncnn::Mat &data, const yolocv::YoloSize &frame_size, int ne
         const float *values = data.row(i);
         box.label = values[0] - 1;
         box.score = values[1];
-        box.x1 = values[2] * (float) frame_size.width;
-        box.y1 = values[3] * (float) frame_size.height;
-        box.x2 = values[4] * (float) frame_size.width;
-        box.y2 = values[5] * (float) frame_size.height;
+        box.x1 = values[2];
+        box.y1 = values[3];
+        box.x2 = values[4];
+        box.y2 = values[5];
         result.push_back(box);
     }
     return result;

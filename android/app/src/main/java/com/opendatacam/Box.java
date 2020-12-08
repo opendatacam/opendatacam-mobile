@@ -1,12 +1,13 @@
 package com.opendatacam;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
 
 import java.util.Random;
 
 public class Box {
-    public float x0,y0,x1,y1;
+    public float x,y,width,height;
     private int label;
     private float score;
     private static String[] labels={"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -19,16 +20,12 @@ public class Box {
             "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
             "hair drier", "toothbrush"};
     public Box(float x0,float y0, float x1, float y1, int label, float score){
-        this.x0 = x0;
-        this.y0 = y0;
-        this.x1 = x1;
-        this.y1 = y1;
+        this.x = x0;
+        this.y = y0;
+        this.width = x1 - x0;
+        this.height = y1 - y0;
         this.label = label;
         this.score = score;
-    }
-
-    public RectF getRect(){
-        return new RectF(x0,y0,x1,y1);
     }
 
     public String getLabel(){
@@ -47,10 +44,10 @@ public class Box {
     @Override
     public String toString() {
         return "Box{" +
-                "x0=" + x0 +
-                ", y0=" + y0 +
-                ", x1=" + x1 +
-                ", y1=" + y1 +
+                "x=" + x +
+                ", y=" + y +
+                ", width=" + width +
+                ", height=" + height +
                 ", label=" + label +
                 ", score=" + score +
                 '}';
