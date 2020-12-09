@@ -62,7 +62,7 @@ public class MainActivity extends BridgeActivity {
             saveLastUpdateTime();
           }
           startNodeWithArguments(new String[]{"node",
-                  nodeDir+"/main.js"
+                  nodeDir+"/server.js"
           });
         }
       }).start();
