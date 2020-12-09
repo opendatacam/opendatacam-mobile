@@ -25,6 +25,8 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
 
     const root = this.attachShadow({ mode: 'open' });
 
+    window.location = "http://localhost:3000";
+
     root.innerHTML = `
     <style>
       :host {
