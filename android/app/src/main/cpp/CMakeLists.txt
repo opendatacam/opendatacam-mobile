@@ -59,30 +59,38 @@ set_target_properties(OGLCompiler PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DI
 set_target_properties(OSDependent PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ncnnvulkan/${ANDROID_ABI}/libOSDependent.a)
 set_target_properties(SPIRV PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ncnnvulkan/${ANDROID_ABI}/libSPIRV.a)
 
-# disable rtti and exceptions
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-# enable rtti and exceptions
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
-
-target_link_libraries( # Specifies the target library.
-        yolov5
-
-        # Links the target library to the log library
-        # included in the NDK.
-        ${log-lib}
-        ${vulkan-lib}
-        ${android-lib}
-        ${jnigraphics-lib})
-
-
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
+
+#Nodejs
+add_library( # Sets the name of the library.
+        native-lib
+
+        # Sets the library as a shared library.
+        SHARED
+
+        # Provides a relative path to your source file(s).
+        native-lib.cpp )
+
+include_directories(libnode/include/node)
+
+add_library( libnode
+        SHARED
+        IMPORTED )
+set_target_properties( # Specifies the target library.
+        libnode
+        # Specifies the parameter you want to define.
+        PROPERTIES IMPORTED_LOCATION
+        # Provides the path to the library you want to import.
+        ${CMAKE_SOURCE_DIR}/libnode/bin/${ANDROID_ABI}/libnode.so )
+
+
 target_link_libraries( # Specifies the target library.
         yolov5
-
+        native-lib
+        libnode
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}

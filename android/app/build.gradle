@@ -18,8 +18,6 @@ android {
         }
 
         ndk {
-            moduleName "yolo5"
-            ldLibs "log", "z", "m"
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
 

@@ -58,3 +58,5 @@ Java_com_opendatacam_YOLOv4_detect(JNIEnv *env, jclass, jobject image, jdouble t
     }
     return ret;
 }
+
+
