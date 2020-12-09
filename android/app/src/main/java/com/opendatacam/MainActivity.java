@@ -61,7 +61,7 @@ public class MainActivity extends BridgeActivity {
 
             saveLastUpdateTime();
           }
-          startNodeWithArguments(new String[]{"node",
+          startNodeWithArguments(new String[]{"PORT=8080 NODE_ENV=production","node",
                   nodeDir+"/server.js"
           });
         }
