@@ -34,7 +34,7 @@ const SIMULATION_MODE = process.env.NODE_ENV !== 'production'; // When not runni
 
 const port = parseInt(process.env.PORT, 10) || configHelper.getAppPort()
 const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev })
+const app = next({ dir: "/data/data/com.opendatacam/files/nodejs-project" })
 const handle = app.getRequestHandler()
 
 // Log config loaded
@@ -65,7 +65,7 @@ if(config.VIDEO_INPUT == 'simulation') {
     };
   }
 }
-const YOLO = new YoloDarknet(yoloConfig);
+//const YOLO = new YoloDarknet(yoloConfig);
 
 // Select tracker, based on GPS settings in config
 var tracker = Tracker;
@@ -89,6 +89,7 @@ if(config.TRACKER_SETTINGS) {
 Opendatacam.setTracker(tracker);
 
 // Init connection to db
+/*
 DBManager.init().then(
   () => {
     console.log('Success init db')
@@ -96,7 +97,7 @@ DBManager.init().then(
   err => {
     console.error(err)
   }
-)
+) */
 
 var stdoutBuffer = "";
 var stdoutInterval = "";
@@ -110,7 +111,7 @@ var unhook_intercept = intercept(function(text) {
   if(stdoutBuffer.length > bufferLimit) {
     stdoutBuffer = stdoutBuffer.substring(stdoutBuffer.length - bufferLimit, stdoutBuffer.length);
   }
-});
+}); 
 
 app.prepare()
 .then(() => {
@@ -123,10 +124,10 @@ app.prepare()
   // This render pages/index.js for a request to /
   express.get('/', (req, res) => {
 
-    YOLO.start(); // Inside yolo process will check is started
+    //YOLO.start(); // Inside yolo process will check is started
 
     const urlData = getURLData(req);
-    Opendatacam.listenToYOLO(YOLO, urlData);
+    //Opendatacam.listenToYOLO(YOLO, urlData);
 
     return app.render(req, res, '/')
   })

@@ -4,8 +4,9 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
 
     Capacitor.Plugins.SplashScreen.hide();
 
-    Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
+    //Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
 
+    /*
     Capacitor.Plugins.CameraObjectDetection.addListener("frameData", (frameData) => {
       var data = JSON.parse(frameData.frameData);
       var canvas = this.shadowRoot.getElementById("myCanvas");
@@ -21,7 +22,7 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
         }
         ctx.fillRect(scaledObject.x, scaledObject.y,scaledObject.width, scaledObject.height);
       })
-    })
+    }) */
 
     const root = this.attachShadow({ mode: 'open' });
 

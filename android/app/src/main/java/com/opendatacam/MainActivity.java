@@ -6,6 +6,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.system.ErrnoException;
+import android.system.Os;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Plugin;
@@ -43,25 +45,42 @@ public class MainActivity extends BridgeActivity {
 
     }});
 
+    System.out.println("START NODE");
     if( !_startedNodeAlready ) {
+      System.out.println("START NODE BECAUSE NOT STARTED YET");
       _startedNodeAlready=true;
       new Thread(new Runnable() {
         @Override
         public void run() {
           //The path where we expect the node project to be at runtime.
+          System.out.println("START NODE RUN LOOP");
           String nodeDir=getApplicationContext().getFilesDir().getAbsolutePath()+"/nodejs-project";
           if (wasAPKUpdated()) {
+            System.out.println("START NODE APK UPDATED");
             //Recursively delete any existing nodejs-project.
             File nodeDirReference=new File(nodeDir);
             if (nodeDirReference.exists()) {
               deleteFolderRecursively(new File(nodeDir));
             }
+
+            System.out.println("START NODE COPY ASSET FOLDER");
             //Copy the node project from assets into the application's data path.
             copyAssetFolder(getApplicationContext().getAssets(), "nodejs-project", nodeDir);
 
+            System.out.println("START NODE COPY ASSET FOLDER FINISH");
             saveLastUpdateTime();
           }
-          startNodeWithArguments(new String[]{"PORT=8080 NODE_ENV=production","node",
+
+          System.out.println("START NODE , REALLY");
+
+          try {
+            Os.setenv("PORT", "8080", true);
+            Os.setenv("NODE_ENV", "production", true);
+          } catch (ErrnoException e) {
+            e.printStackTrace();
+          }
+
+          startNodeWithArguments(new String[]{"node",
                   nodeDir+"/server.js"
           });
         }
