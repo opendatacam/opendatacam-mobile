@@ -32,11 +32,20 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.getcapacitor.Bridge;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -71,6 +80,8 @@ public class CameraActivity extends Fragment {
     ExecutorService cameraExecutor;
 
     private double threshold = 0.3, nms_threshold = 0.7;
+
+    RequestQueue requestQueue = null;
 
     // Constructor
     @Override
@@ -132,6 +143,8 @@ public class CameraActivity extends Fragment {
         if (mOrientationListener.canDetectOrientation()) {
             mOrientationListener.enable();
         }
+
+        requestQueue = Volley.newRequestQueue(getContext());
 
         return view;
     }
@@ -254,14 +267,42 @@ public class CameraActivity extends Fragment {
         Gson gson = new Gson();
         String objectsDetectedJSON = gson.toJson(objectsDetected);
 
-        Bundle result = new Bundle();
-        result.putString("jsonData", objectsDetectedJSON);
-        getParentFragmentManager().setFragmentResult("frameData", result);
+        //Bundle result = new Bundle();
+        //result.putString("jsonData", objectsDetectedJSON);
+        //getParentFragmentManager().setFragmentResult("frameData", result);
+
+        // TODO DO THIS ONLY WHEN NODE SERVER IS STARTED ?
+
+        try {
+            postData(new JSONArray(objectsDetectedJSON));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
 
         //isDetectingOnCamera.set(false);
 
         return objectsDetected;
+    }
+
+    // Post Request For JSONObject
+    public void postData(JSONArray jsonArray) {
+
+        // Enter the correct url for your api service site
+        String url = "http://localhost:8080/updatewithnewframe";
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.POST, url, jsonArray,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        System.out.println("String Response : "+ response.toString());
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                System.out.println("Error getting response");
+            }
+        });
+        requestQueue.add(jsonArrayRequest);
     }
 
 }
