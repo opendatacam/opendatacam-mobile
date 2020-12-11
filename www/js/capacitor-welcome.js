@@ -26,7 +26,14 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
 
     const root = this.attachShadow({ mode: 'open' });
 
-    window.location = "http://localhost:8080";
+    var startOpenDataCam = setInterval(() => {
+      // Request opendatacam app until the node.js server is started
+      fetch('http://localhost:8080', {mode: "no-cors"}).then(function(response) {
+        console.log('Started, yeah !');
+        window.location = "http://localhost:8080";
+        clearInterval(startOpenDataCam);
+      })
+    }, 1000);
 
     root.innerHTML = `
     <style>
