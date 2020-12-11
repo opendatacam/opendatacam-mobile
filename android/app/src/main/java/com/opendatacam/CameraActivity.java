@@ -160,8 +160,8 @@ public class CameraActivity extends Fragment {
                 image.close();
 
                 final long dur = System.currentTimeMillis() - start;
-                System.out.println(String.format(Locale.CHINESE, "%s\nSize: %dx%d\nTime: %.3f s\nFPS: %.3f",
-                        "tinyYOLO", height, width, dur / 1000.0, 1000.0f / dur));
+                //System.out.println(String.format(Locale.CHINESE, "%s\nSize: %dx%d\nTime: %.3f s\nFPS: %.3f",
+                //        "tinyYOLO", height, width, dur / 1000.0, 1000.0f / dur));
             }
         });
 
@@ -249,7 +249,7 @@ public class CameraActivity extends Fragment {
         objectsDetected = YOLOv4.detect(image, threshold, nms_threshold);
 
         //System.out.println("detecting on frame sucess return result");
-        System.out.println(Arrays.toString(objectsDetected));
+        //System.out.println(Arrays.toString(objectsDetected));
 
         Gson gson = new Gson();
         String objectsDetectedJSON = gson.toJson(objectsDetected);

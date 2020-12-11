@@ -129,6 +129,8 @@ app.prepare()
     const urlData = getURLData(req);
     //Opendatacam.listenToYOLO(YOLO, urlData);
 
+    Opendatacam.setVideoResolution({w: 480, h: 640});
+
     return app.render(req, res, '/')
   })
 
