@@ -5,9 +5,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Plugin;
@@ -29,6 +35,9 @@ public class MainActivity extends BridgeActivity {
   //We just want one instance of node running in the background.
   public static boolean _startedNodeAlready=false;
 
+  private CameraActivity fragment;
+  private int containerViewId = 20;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -44,6 +53,25 @@ public class MainActivity extends BridgeActivity {
       //fragment.startCamera();
 
     }});
+
+    // Create container view
+    fragment = new CameraActivity();
+    FrameLayout containerView = getBridge().getActivity().findViewById(containerViewId);
+    if(containerView == null) {
+      containerView = new FrameLayout(getApplicationContext());
+      containerView.setId(containerViewId);
+      containerView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+      getBridge().getWebView().setBackgroundColor(Color.TRANSPARENT);
+      ((ViewGroup)getBridge().getWebView().getParent()).addView(containerView);
+      // to back
+      getBridge().getWebView().getParent().bringChildToFront(getBridge().getWebView());
+
+      FragmentManager fragmentManager = getSupportFragmentManager();
+      FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+      fragmentTransaction.add(containerView.getId(), fragment);
+      fragmentTransaction.commit();
+    }
 
     System.out.println("START NODE");
     if( !_startedNodeAlready ) {
