@@ -529,6 +529,8 @@ union vk_constant_type
 #if NCNN_PIXEL
 // convert yuv420sp(nv21) to rgb, the fast approximate version
 void yuv420sp2rgb(const unsigned char* yuv420sp, int w, int h, unsigned char* rgb);
+// convert yuv420sp(nv12) to rgb, the fast approximate version
+void yuv420sp2rgb_nv12(const unsigned char* yuv420sp, int w, int h, unsigned char* rgb);
 // convert yuv420sp(nv21) to rgb with half resize, the faster approximate version
 void yuv420sp2rgb_half(const unsigned char* yuv420sp, int w, int h, unsigned char* rgb);
 // image pixel bilinear resize
@@ -541,7 +543,7 @@ void resize_bilinear_c1(const unsigned char* src, int srcw, int srch, int srcstr
 void resize_bilinear_c2(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride);
 void resize_bilinear_c3(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride);
 void resize_bilinear_c4(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride);
-// image pixel bilinear resize, convenient wrapper for yuv420sp(nv21)
+// image pixel bilinear resize, convenient wrapper for yuv420sp(nv21/nv12)
 void resize_bilinear_yuv420sp(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h);
 #endif // NCNN_PIXEL
 #if NCNN_PIXEL_ROTATE
@@ -566,9 +568,29 @@ void kanna_rotate_c1(const unsigned char* src, int srcw, int srch, int srcstride
 void kanna_rotate_c2(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, int type);
 void kanna_rotate_c3(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, int type);
 void kanna_rotate_c4(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, int type);
-// image pixel kanna rotate, convenient wrapper for yuv420sp(nv21)
+// image pixel kanna rotate, convenient wrapper for yuv420sp(nv21/nv12)
 void kanna_rotate_yuv420sp(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h, int type);
 #endif // NCNN_PIXEL_ROTATE
+#if NCNN_PIXEL_AFFINE
+// resolve affine transform matrix from rotation angle, scale factor and x y offset
+void get_rotation_matrix(float angle, float scale, float dx, float dy, float* tm);
+// resolve affine transform matrix from two set of points, num_point must be >= 2
+void get_affine_transform(const float* points_from, const float* points_to, int num_point, float* tm);
+// resolve the inversion affine transform matrix
+void invert_affine_transform(const float* tm, float* tm_inv);
+// image pixel bilinear warpaffine, set -233 for transparent border color
+void warpaffine_bilinear_c1(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h, const float* tm, int v = 0);
+void warpaffine_bilinear_c2(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h, const float* tm, int v = 0);
+void warpaffine_bilinear_c3(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h, const float* tm, int v = 0);
+void warpaffine_bilinear_c4(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h, const float* tm, int v = 0);
+// image pixel bilinear warpaffine with stride(bytes-per-row) parameter, set -233 for transparent border color
+void warpaffine_bilinear_c1(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, const float* tm, int v = 0);
+void warpaffine_bilinear_c2(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, const float* tm, int v = 0);
+void warpaffine_bilinear_c3(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, const float* tm, int v = 0);
+void warpaffine_bilinear_c4(const unsigned char* src, int srcw, int srch, int srcstride, unsigned char* dst, int w, int h, int stride, const float* tm, int v = 0);
+// image pixel bilinear warpaffine, convenient wrapper for yuv420sp(nv21/nv12), set -233 for transparent border color
+void warpaffine_bilinear_yuv420sp(const unsigned char* src, int srcw, int srch, unsigned char* dst, int w, int h, const float* tm, int v = 0);
+#endif // NCNN_PIXEL_AFFINE
 
 // type conversion
 // convert float to half precision floating point
@@ -689,13 +711,13 @@ inline Mat::Mat(int _w, void* _data, size_t _elemsize, Allocator* _allocator)
 inline Mat::Mat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
-    cstep = w * h;
+    cstep = (size_t)w * h;
 }
 
 inline Mat::Mat(int _w, int _h, int _c, void* _data, size_t _elemsize, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
-    cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
 }
 
 inline Mat::Mat(int _w, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -707,13 +729,13 @@ inline Mat::Mat(int _w, void* _data, size_t _elemsize, int _elempack, Allocator*
 inline Mat::Mat(int _w, int _h, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
-    cstep = w * h;
+    cstep = (size_t)w * h;
 }
 
 inline Mat::Mat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
-    cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
 }
 
 inline Mat::~Mat()
@@ -854,7 +876,7 @@ inline void Mat::fill(int _v)
 #if __ARM_NEON
 inline void Mat::fill(float32x4_t _v)
 {
-    int size = total();
+    int size = (int)total();
     float* ptr = (float*)data;
     for (int i = 0; i < size; i++)
     {
@@ -864,7 +886,7 @@ inline void Mat::fill(float32x4_t _v)
 }
 inline void Mat::fill(uint16x4_t _v)
 {
-    int size = total();
+    int size = (int)total();
     unsigned short* ptr = (unsigned short*)data;
     for (int i = 0; i < size; i++)
     {
@@ -875,7 +897,7 @@ inline void Mat::fill(uint16x4_t _v)
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 inline void Mat::fill(float16x4_t _v)
 {
-    int size = total();
+    int size = (int)total();
     __fp16* ptr = (__fp16*)data;
     for (int i = 0; i < size; i++)
     {
@@ -886,7 +908,7 @@ inline void Mat::fill(float16x4_t _v)
 
 inline void Mat::fill(float16x8_t _v)
 {
-    int size = total();
+    int size = (int)total();
     __fp16* ptr = (__fp16*)data;
     for (int i = 0; i < size; i++)
     {
@@ -899,7 +921,7 @@ inline void Mat::fill(float16x8_t _v)
 #if __AVX__
 inline void Mat::fill(__m256 _v)
 {
-    int size = total();
+    int size = (int)total();
     float* ptr = (float*)data;
     for (int i = 0; i < size; i++)
     {
@@ -909,7 +931,7 @@ inline void Mat::fill(__m256 _v)
 }
 inline void Mat::fill(__m128i _v)
 {
-    int size = total();
+    int size = (int)total();
     unsigned short* ptr = (unsigned short*)data;
     for (int i = 0; i < size; i++)
     {
@@ -922,7 +944,7 @@ inline void Mat::fill(__m128i _v)
 template<typename T>
 inline void Mat::fill(T _v)
 {
-    int size = total();
+    int size = (int)total();
     T* ptr = (T*)data;
     for (int i = 0; i < size; i++)
     {
@@ -930,18 +952,18 @@ inline void Mat::fill(T _v)
     }
 }
 
-inline Mat Mat::clone(Allocator* allocator) const
+inline Mat Mat::clone(Allocator* _allocator) const
 {
     if (empty())
         return Mat();
 
     Mat m;
     if (dims == 1)
-        m.create(w, elemsize, elempack, allocator);
+        m.create(w, elemsize, elempack, _allocator);
     else if (dims == 2)
-        m.create(w, h, elemsize, elempack, allocator);
+        m.create(w, h, elemsize, elempack, _allocator);
     else if (dims == 3)
-        m.create(w, h, c, elemsize, elempack, allocator);
+        m.create(w, h, c, elemsize, elempack, _allocator);
 
     if (total() > 0)
     {
@@ -965,8 +987,8 @@ inline Mat Mat::reshape(int _w, Allocator* _allocator) const
         for (int i = 0; i < c; i++)
         {
             const void* ptr = (unsigned char*)data + i * cstep * elemsize;
-            void* mptr = (unsigned char*)m.data + i * w * h * elemsize;
-            memcpy(mptr, ptr, w * h * elemsize);
+            void* mptr = (unsigned char*)m.data + (size_t)i * w * h * elemsize;
+            memcpy(mptr, ptr, (size_t)w * h * elemsize);
         }
 
         return m;
@@ -998,8 +1020,8 @@ inline Mat Mat::reshape(int _w, int _h, Allocator* _allocator) const
         for (int i = 0; i < c; i++)
         {
             const void* ptr = (unsigned char*)data + i * cstep * elemsize;
-            void* mptr = (unsigned char*)m.data + i * w * h * elemsize;
-            memcpy(mptr, ptr, w * h * elemsize);
+            void* mptr = (unsigned char*)m.data + (size_t)i * w * h * elemsize;
+            memcpy(mptr, ptr, (size_t)w * h * elemsize);
         }
 
         return m;
@@ -1012,7 +1034,7 @@ inline Mat Mat::reshape(int _w, int _h, Allocator* _allocator) const
     m.h = _h;
     m.c = 1;
 
-    m.cstep = _w * _h;
+    m.cstep = (size_t)_w * _h;
 
     return m;
 }
@@ -1024,7 +1046,7 @@ inline Mat Mat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
 
     if (dims < 3)
     {
-        if ((size_t)_w * _h != alignSize(_w * _h * elemsize, 16) / elemsize)
+        if ((size_t)_w * _h != alignSize((size_t)_w * _h * elemsize, 16) / elemsize)
         {
             Mat m;
             m.create(_w, _h, _c, elemsize, elempack, _allocator);
@@ -1032,9 +1054,9 @@ inline Mat Mat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
             // align channel
             for (int i = 0; i < _c; i++)
             {
-                const void* ptr = (unsigned char*)data + i * _w * _h * elemsize;
+                const void* ptr = (unsigned char*)data + (size_t)i * _w * _h * elemsize;
                 void* mptr = (unsigned char*)m.data + i * m.cstep * m.elemsize;
-                memcpy(mptr, ptr, _w * _h * elemsize);
+                memcpy(mptr, ptr, (size_t)_w * _h * elemsize);
             }
 
             return m;
@@ -1054,7 +1076,7 @@ inline Mat Mat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
     m.h = _h;
     m.c = _c;
 
-    m.cstep = alignSize(_w * _h * elemsize, 16) / elemsize;
+    m.cstep = alignSize((size_t)_w * _h * elemsize, 16) / elemsize;
 
     return m;
 }
@@ -1105,7 +1127,7 @@ inline void Mat::create(int _w, int _h, size_t _elemsize, Allocator* _allocator)
     h = _h;
     c = 1;
 
-    cstep = w * h;
+    cstep = (size_t)w * h;
 
     if (total() > 0)
     {
@@ -1135,7 +1157,7 @@ inline void Mat::create(int _w, int _h, int _c, size_t _elemsize, Allocator* _al
     h = _h;
     c = _c;
 
-    cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
     {
@@ -1195,7 +1217,7 @@ inline void Mat::create(int _w, int _h, size_t _elemsize, int _elempack, Allocat
     h = _h;
     c = 1;
 
-    cstep = w * h;
+    cstep = (size_t)w * h;
 
     if (total() > 0)
     {
@@ -1225,7 +1247,7 @@ inline void Mat::create(int _w, int _h, int _c, size_t _elemsize, int _elempack,
     h = _h;
     c = _c;
 
-    cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
     {
@@ -1317,7 +1339,7 @@ inline size_t Mat::total() const
 
 inline int Mat::elembits() const
 {
-    return elempack ? elemsize * 8 / elempack : 0;
+    return elempack ? static_cast<int>(elemsize * 8) / elempack : 0;
 }
 
 inline Mat Mat::shape() const
@@ -1344,24 +1366,24 @@ inline const Mat Mat::channel(int _c) const
 
 inline float* Mat::row(int y)
 {
-    return (float*)((unsigned char*)data + w * y * elemsize);
+    return (float*)((unsigned char*)data + (size_t)w * y * elemsize);
 }
 
 inline const float* Mat::row(int y) const
 {
-    return (const float*)((unsigned char*)data + w * y * elemsize);
+    return (const float*)((unsigned char*)data + (size_t)w * y * elemsize);
 }
 
 template<typename T>
 inline T* Mat::row(int y)
 {
-    return (T*)((unsigned char*)data + w * y * elemsize);
+    return (T*)((unsigned char*)data + (size_t)w * y * elemsize);
 }
 
 template<typename T>
 inline const T* Mat::row(int y) const
 {
-    return (const T*)((unsigned char*)data + w * y * elemsize);
+    return (const T*)((unsigned char*)data + (size_t)w * y * elemsize);
 }
 
 inline Mat Mat::channel_range(int _c, int channels)
@@ -1376,12 +1398,12 @@ inline const Mat Mat::channel_range(int _c, int channels) const
 
 inline Mat Mat::row_range(int y, int rows)
 {
-    return Mat(w, rows, (unsigned char*)data + w * y * elemsize, elemsize, elempack, allocator);
+    return Mat(w, rows, (unsigned char*)data + (size_t)w * y * elemsize, elemsize, elempack, allocator);
 }
 
 inline const Mat Mat::row_range(int y, int rows) const
 {
-    return Mat(w, rows, (unsigned char*)data + w * y * elemsize, elemsize, elempack, allocator);
+    return Mat(w, rows, (unsigned char*)data + (size_t)w * y * elemsize, elemsize, elempack, allocator);
 }
 
 inline Mat Mat::range(int x, int n)
@@ -1965,7 +1987,7 @@ inline void VkImageMat::create(int _w, size_t _elemsize, VkAllocator* _allocator
 
     if (total() > 0)
     {
-        data = allocator->fastMalloc(dims, w, h, c, elemsize, elempack);
+        data = allocator->fastMalloc(w, h, c, elemsize, elempack);
         if (!data)
             return;
 
@@ -1992,7 +2014,7 @@ inline void VkImageMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _a
 
     if (total() > 0)
     {
-        data = allocator->fastMalloc(dims, w, h, c, elemsize, elempack);
+        data = allocator->fastMalloc(w, h, c, elemsize, elempack);
         if (!data)
             return;
 
@@ -2019,7 +2041,7 @@ inline void VkImageMat::create(int _w, int _h, int _c, size_t _elemsize, VkAlloc
 
     if (total() > 0)
     {
-        data = allocator->fastMalloc(dims, w, h, c, elemsize, elempack);
+        data = allocator->fastMalloc(w, h, c, elemsize, elempack);
         if (!data)
             return;
 
@@ -2046,7 +2068,7 @@ inline void VkImageMat::create(int _w, size_t _elemsize, int _elempack, VkAlloca
 
     if (total() > 0)
     {
-        data = allocator->fastMalloc(dims, w, h, c, elemsize, elempack);
+        data = allocator->fastMalloc(w, h, c, elemsize, elempack);
         if (!data)
             return;
 
@@ -2073,7 +2095,7 @@ inline void VkImageMat::create(int _w, int _h, size_t _elemsize, int _elempack, 
 
     if (total() > 0)
     {
-        data = allocator->fastMalloc(dims, w, h, c, elemsize, elempack);
+        data = allocator->fastMalloc(w, h, c, elemsize, elempack);
         if (!data)
             return;
 
@@ -2100,7 +2122,7 @@ inline void VkImageMat::create(int _w, int _h, int _c, size_t _elemsize, int _el
 
     if (total() > 0)
     {
-        data = allocator->fastMalloc(dims, w, h, c, elemsize, elempack);
+        data = allocator->fastMalloc(w, h, c, elemsize, elempack);
         if (!data)
             return;
 
