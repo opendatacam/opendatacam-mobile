@@ -6,9 +6,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -18,12 +20,15 @@ import androidx.fragment.app.FragmentTransaction;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Plugin;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class MainActivity extends BridgeActivity {
 
@@ -53,6 +58,8 @@ public class MainActivity extends BridgeActivity {
       //fragment.startCamera();
 
     }});
+
+    // TODO ask for permissions
 
     // Create container view
     fragment = new CameraActivity();
@@ -91,9 +98,15 @@ public class MainActivity extends BridgeActivity {
               deleteFolderRecursively(new File(nodeDir));
             }
 
+            // create dest folder
+            new File(nodeDir).mkdirs();
+
             System.out.println("START NODE COPY ASSET FOLDER");
             //Copy the node project from assets into the application's data path.
-            copyAssetFolder(getApplicationContext().getAssets(), "nodejs-project", nodeDir);
+            copyAndUnzip("nodejs-project.zip", nodeDir);
+            // slow way is to copy the actual files
+            // copyAssetFolder(getApplicationContext().getAssets(), "nodejs-project", nodeDir);
+
 
             System.out.println("START NODE COPY ASSET FOLDER FINISH");
             saveLastUpdateTime();
@@ -111,6 +124,7 @@ public class MainActivity extends BridgeActivity {
           startNodeWithArguments(new String[]{"node",
                   nodeDir+"/server.js"
           });
+
         }
       }).start();
     }
@@ -185,7 +199,7 @@ public class MainActivity extends BridgeActivity {
   }
 
   private static void copyFile(InputStream in, OutputStream out) throws IOException {
-    byte[] buffer = new byte[1024];
+    byte[] buffer = new byte[8192];
     int read;
     while ((read = in.read(buffer)) != -1) {
       out.write(buffer, 0, read);
@@ -217,5 +231,49 @@ public class MainActivity extends BridgeActivity {
     SharedPreferences.Editor editor = prefs.edit();
     editor.putLong("NODEJS_MOBILE_APK_LastUpdateTime", lastUpdateTime);
     editor.commit();
+  }
+
+  private void copyAndUnzip(String zipFilename, String toPath) {
+    AssetManager assetManager = getApplicationContext().getAssets();
+
+    try {
+      System.out.println("Start unzip");
+      InputStream inputStream = assetManager.open(zipFilename);
+      ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(inputStream));
+
+      ZipEntry zipEntry;
+      byte[] buffer = new byte[8192];
+
+      while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+        String fileOrDirectory = zipEntry.getName();
+
+        //System.out.println(fileOrDirectory);
+
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("file");
+        builder.appendPath(toPath);
+        builder.appendPath(fileOrDirectory);
+        String fullToPath = builder.build().getPath();
+
+        if (zipEntry.isDirectory()) {
+          File directory = new File(fullToPath);
+          directory.mkdirs();
+          continue;
+        }
+
+        FileOutputStream fileOutputStream = new FileOutputStream(fullToPath);
+        int count;
+        while ((count = zipInputStream.read(buffer)) != -1) {
+          fileOutputStream.write(buffer, 0, count);
+        }
+        fileOutputStream.close();
+        zipInputStream.closeEntry();
+      }
+
+      zipInputStream.close();
+
+    } catch (IOException e) {
+      Log.e("CopyAndUnzip", e.getLocalizedMessage());
+    }
   }
 }
