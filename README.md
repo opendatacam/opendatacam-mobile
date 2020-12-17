@@ -20,4 +20,12 @@ npm prune --production
 zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -x ".git/*" ".github/*" "public/static/placeholder/*" "public/static/demo/*" "documentation/*" ".next/*" "apidoc/*" "docker/*" "script/*" "spec/*"
 ```
 
+#### Troubleshooting
+
+##### Infinite cmake loop on android build
+
+```
+# remove android/app/.cxx folder
+rm -rf android/app/.cxx/
+```
 
