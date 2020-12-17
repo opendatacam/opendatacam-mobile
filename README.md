@@ -41,6 +41,12 @@ Full command
 npm i;npm run build;npm prune --production;rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip;zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -x ".git/*" ".github/*" "public/static/placeholder/*" "public/static/demo/*" "documentation/*" ".next/*" "apidoc/*" "docker/*" "script/*" "spec/*";
 ```
 
+### Dev workflow
+
+Open chrome, and open `chrome://inspect` , the webview should show up. 
+
+PS: I have issue with latest version of chrome.. if doesn't work download a old version, for example this browser is based on a old version of chrome: https://www.slimjet.com 
+
 ### Troubleshooting
 
 #### Infinite cmake loop on android build
