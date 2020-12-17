@@ -6,6 +6,7 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
 
     const root = this.attachShadow({ mode: 'open' });
 
+    // only to ask permissions
     //Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
     
     Capacitor.Plugins.CameraObjectDetection.addListener("frameData", (frameData) => {

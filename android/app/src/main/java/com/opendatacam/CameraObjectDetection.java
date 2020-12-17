@@ -33,9 +33,12 @@ public class CameraObjectDetection extends Plugin {
     @PluginMethod()
     public void startObjectDetection(PluginCall call) {
 
-        fragment = new CameraActivity();
+        // Do nothing, we use this only to ask for camera permission
+
+        //fragment = new CameraActivity();
 
         // 1. Start camera preview if not start
+        /*
         bridge.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -80,6 +83,8 @@ public class CameraObjectDetection extends Plugin {
                 }
             }
         });
+
+         */
     }
 
     @PluginMethod()

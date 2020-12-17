@@ -1,18 +1,23 @@
 package com.opendatacam;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -31,6 +36,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class MainActivity extends BridgeActivity {
+
+  private static final int PERMISSION_REQUEST_CODE = 200;
 
   static {
     System.loadLibrary("native-lib");
@@ -59,8 +66,16 @@ public class MainActivity extends BridgeActivity {
 
     }});
 
-    // TODO ask for permissions
+    if (checkPermission()) {
+      mainlogic();
 
+    } else {
+      requestPermission();
+    }
+  }
+
+  public void mainlogic() {
+    // Start YOLO and camera preview
     // Create container view
     fragment = new CameraActivity();
     FrameLayout containerView = getBridge().getActivity().findViewById(containerViewId);
@@ -80,6 +95,7 @@ public class MainActivity extends BridgeActivity {
       fragmentTransaction.commit();
     }
 
+    //main logic or main code
     System.out.println("START NODE");
     if( !_startedNodeAlready ) {
       System.out.println("START NODE BECAUSE NOT STARTED YET");
@@ -125,9 +141,13 @@ public class MainActivity extends BridgeActivity {
                   nodeDir+"/server.js"
           });
 
+
+
+
         }
       }).start();
     }
+
   }
 
   /**
@@ -275,5 +295,59 @@ public class MainActivity extends BridgeActivity {
     } catch (IOException e) {
       Log.e("CopyAndUnzip", e.getLocalizedMessage());
     }
+  }
+
+  private boolean checkPermission() {
+    if (getApplicationContext().checkSelfPermission(Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+      // Permission is not granted
+      return false;
+    }
+    return true;
+  }
+
+  private void requestPermission() {
+
+    this.requestPermissions(
+            new String[]{Manifest.permission.CAMERA},
+            PERMISSION_REQUEST_CODE);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    switch (requestCode) {
+      case PERMISSION_REQUEST_CODE:
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          Toast.makeText(getApplicationContext(), "Permission Granted", Toast.LENGTH_SHORT).show();
+          mainlogic();
+          // main logic
+        } else {
+          Toast.makeText(getApplicationContext(), "Permission Denied", Toast.LENGTH_SHORT).show();
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (getApplicationContext().checkSelfPermission(Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+              showMessageOKCancel("You need to allow access permissions",
+                      new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            requestPermission();
+                          }
+                        }
+                      });
+            }
+          }
+        }
+        break;
+    }
+  }
+
+  private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+    new AlertDialog.Builder(getApplicationContext())
+            .setMessage(message)
+            .setPositiveButton("OK", okListener)
+            .setNegativeButton("Cancel", null)
+            .create()
+            .show();
   }
 }
