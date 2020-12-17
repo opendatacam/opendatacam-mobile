@@ -35,6 +35,12 @@ rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip
 zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -x ".git/*" ".github/*" "public/static/placeholder/*" "public/static/demo/*" "documentation/*" ".next/*" "apidoc/*" "docker/*" "script/*" "spec/*"
 ```
 
+Full command
+
+```bash
+npm i;npm run build;npm prune --production;rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip;zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -x ".git/*" ".github/*" "public/static/placeholder/*" "public/static/demo/*" "documentation/*" ".next/*" "apidoc/*" "docker/*" "script/*" "spec/*";
+```
+
 ### Troubleshooting
 
 #### Infinite cmake loop on android build
