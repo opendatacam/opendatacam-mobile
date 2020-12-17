@@ -4,26 +4,62 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
 
     Capacitor.Plugins.SplashScreen.hide();
 
-    Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
+    const root = this.attachShadow({ mode: 'open' });
 
+    //Capacitor.Plugins.CameraObjectDetection.startObjectDetection();
+    
     Capacitor.Plugins.CameraObjectDetection.addListener("frameData", (frameData) => {
       var data = JSON.parse(frameData.frameData);
-      var canvas = this.shadowRoot.getElementById("myCanvas");
-      var ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#FF0000";
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      data.map((object) => {
-        var scaledObject = {
-          x: canvas.width * object.x,
-          y: canvas.height * object.y,
-          width: canvas.width * object.width ,
-          height: canvas.height * object.height
-        }
-        ctx.fillRect(scaledObject.x, scaledObject.y,scaledObject.width, scaledObject.height);
-      })
+
+      
+      // Format data like the YOLO JSON return
+        /*
+        {
+          "frame_id":16, 
+          "objects": [ 
+          {"class_id":6, "name":"car", "relative_coordinates":{"center_x":0.485693, "center_y":0.570632, "width":0.091478, "height":0.156059}, "confidence":0.892377}
+          ] 
+        } */
+
+      var frameUpdate = {
+        frame_id: frameId,
+        objects: data.map((object) => {
+          return {
+            class_id: "6",
+            name: "car",
+            relative_coordinates: {
+              center_x: object.x + object.width / 2,
+              center_y: object.y + object.height / 2,
+              width: object.width,
+              height: object.height
+            },
+            confidence: 0.8
+          }
+        })
+      }
+
+
+      // update this detection to the node.js app
+      fetch('http://localhost:8080/updatewithnewframe', {
+        method: 'POST',
+        mode: "no-cors",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(frameUpdate)
+      })    
     })
 
-    const root = this.attachShadow({ mode: 'open' });
+    var startOpenDataCam = setInterval(() => {
+      // Request opendatacam app until the node.js server is started
+      fetch('http://localhost:8080', {mode: "no-cors"}).then(function(response) {
+        console.log('Started, yeah !');
+        window.location = "http://localhost:8080";
+        clearInterval(startOpenDataCam);
+        // here then the link with the capacitor is lost.. obviously
+      })
+    }, 1000);
 
     root.innerHTML = `
     <style>
@@ -33,14 +69,8 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
         width: 100%;
         height: 100%;
       }
-
-      #myCanvas {
-        width: 100%;
-        height: 100%;
-      }
-      
     </style>
-    <canvas id="myCanvas"></canvas>
+    <h1>Starting Node.js server...</h1>
     `
   }
 });
