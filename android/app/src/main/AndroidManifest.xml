@@ -33,6 +33,7 @@
             android:launchMode="singleTask"
             android:screenOrientation="fullSensor">
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
