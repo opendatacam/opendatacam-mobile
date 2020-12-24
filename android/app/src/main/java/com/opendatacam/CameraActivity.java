@@ -1,20 +1,26 @@
 package com.opendatacam;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.hardware.display.DisplayManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.util.Size;
+import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +35,7 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.hardware.display.DisplayManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -49,9 +56,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -81,7 +92,40 @@ public class CameraActivity extends Fragment {
 
     private double threshold = 0.3, nms_threshold = 0.7;
 
+    private double RATIO_4_3_VALUE = 4.0 / 3.0;
+    private double RATIO_16_9_VALUE = 16.0 / 9.0;
+
     RequestQueue requestQueue = null;
+
+    private int currentRotation = 0;
+    private DisplayManager mDisplayManager;
+
+    /**
+     * We need a display listener for orientation changes that do not trigger a configuration
+     * change, for example if we choose to override config change in manifest or for 180-degree
+     * orientation changes.
+     */
+    private final DisplayManager.DisplayListener mDisplayListener = new DisplayManager.DisplayListener() {
+        @Override
+        public void onDisplayAdded(int displayId) {
+
+        }
+
+        @Override
+        public void onDisplayChanged(int displayId) {
+            if (imageAnalysis != null) {
+                currentRotation = previewView.getDisplay().getRotation();
+                System.out.println("CameraActivity Rotation changed: " + currentRotation);
+                imageAnalysis.setTargetRotation(currentRotation);
+                preview.setTargetRotation(currentRotation);
+            }
+        }
+
+        @Override
+        public void onDisplayRemoved(int displayId) {
+
+        }
+    };
 
     // Constructor
     @Override
@@ -97,6 +141,11 @@ public class CameraActivity extends Fragment {
 
         YOLOv4.init(getActivity().getAssets(), 0, false);
 
+
+        // Every time the orientation of device changes, update rotation for use cases
+        mDisplayManager = (DisplayManager) getContext().getSystemService(Context.DISPLAY_SERVICE);
+        mDisplayManager.registerDisplayListener(mDisplayListener, null);
+
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
@@ -107,51 +156,43 @@ public class CameraActivity extends Fragment {
             }
         }, ContextCompat.getMainExecutor(getActivity()));
 
-        // See: https://developer.android.com/training/camerax/orientation-rotation
-        OrientationEventListener mOrientationListener = new OrientationEventListener(
-                getContext()) {
-            @SuppressLint("UnsafeExperimentalUsageError")
-            @Override
-            public void onOrientationChanged(int orientation) {
-
-                //System.out.println(orientation);
-
-                if (imageAnalysis != null) {
-                    if (orientation >= 45 && orientation < 135) {
-                        System.out.println("Change imageAnalysis rotation");
-                        imageAnalysis.setTargetRotation(Surface.ROTATION_270);
-                        preview.setTargetRotation(Surface.ROTATION_270);
-                    } else if (orientation >= 135 && orientation < 225) {
-                        System.out.println("Change imageAnalysis rotation");
-                        imageAnalysis.setTargetRotation(Surface.ROTATION_180);
-                        preview.setTargetRotation(Surface.ROTATION_180);
-                    } else if (orientation >= 225 && orientation < 315) {
-                        System.out.println("Change imageAnalysis rotation");
-                        imageAnalysis.setTargetRotation(Surface.ROTATION_90);
-                        preview.setTargetRotation(Surface.ROTATION_90);
-                    } else {
-                        System.out.println("Change imageAnalysis rotation");
-                        imageAnalysis.setTargetRotation(Surface.ROTATION_0);
-                        preview.setTargetRotation(Surface.ROTATION_0);
-                    }
-                }
-
-            }
-
-        };
-
-        if (mOrientationListener.canDetectOrientation()) {
-            mOrientationListener.enable();
-        }
 
         requestQueue = Volley.newRequestQueue(getContext());
 
         return view;
     }
 
+    private Integer aspectRatio(Integer width, Integer height) {
+        double previewRatio = Math.max(width, height) / Math.min(width, height);
+        if (Math.abs(previewRatio - RATIO_4_3_VALUE) <= Math.abs(previewRatio - RATIO_16_9_VALUE)) {
+            return AspectRatio.RATIO_4_3;
+        }
+        return AspectRatio.RATIO_16_9;
+    }
+
     public void createCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
 
+
+        // Get screen metrics used to setup camera for full screen resolution
+        DisplayMetrics metrics = new DisplayMetrics();
+        previewView.getDisplay().getRealMetrics(metrics);
+
+        //Log.d("CameraActivity", "Screen metrics: " + metrics.widthPixels + " x " + metrics.heightPixels);
+        System.out.println("CameraActivity Screen metrics: " + metrics.widthPixels + " x " + metrics.heightPixels);
+
+        int screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
+        //Log.d("CameraActivity", "Preview aspect ratio: " + screenAspectRatio);
+        System.out.println("CameraActivity Preview aspect ratio: " + screenAspectRatio);
+
+        currentRotation = previewView.getDisplay().getRotation();
+
+        System.out.println("CameraActivity: Rotation init " + currentRotation);
+
         preview = new Preview.Builder()
+                // We request aspect ratio but no resolution
+                .setTargetAspectRatio(screenAspectRatio)
+                // Set initial target rotation
+                .setTargetRotation(currentRotation)
                 .build();
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
@@ -161,6 +202,11 @@ public class CameraActivity extends Fragment {
         imageAnalysis =
                 new ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        // We request aspect ratio but no resolution
+                        .setTargetAspectRatio(screenAspectRatio)
+                        // Set initial target rotation, we will have to call this again if rotation changes
+                        // during the lifecycle of this use case
+                        .setTargetRotation(currentRotation)
                         .build();
 
         imageAnalysis.setAnalyzer(cameraExecutor, new ImageAnalysis.Analyzer() {
@@ -169,8 +215,16 @@ public class CameraActivity extends Fragment {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
                 long start = System.currentTimeMillis();
 
+
                 detectOnModel(image, rotationDegrees);
                 image.close();
+
+                /*
+                setTimeout(() -> {
+
+
+
+                    }, 1000); */
 
                 final long dur = System.currentTimeMillis() - start;
                 //System.out.println(String.format(Locale.CHINESE, "%s\nSize: %dx%d\nTime: %.3f s\nFPS: %.3f",
@@ -247,7 +301,14 @@ public class CameraActivity extends Fragment {
                 matrix.postRotate(rotationDegrees);
                 width = bitmapsrc.getWidth();
                 height = bitmapsrc.getHeight();
+                System.out.println("CameraActivity Detecting on image that is:");
+                System.out.println(width + "x" + height);
+                System.out.println("CameraActivity rotate " + rotationDegrees);
                 Bitmap bitmap = Bitmap.createBitmap(bitmapsrc, 0, 0, width, height, matrix, false);
+
+                //saveImage(bitmap, "frame"+ new Date().toString());
+
+                // TODO PREVIEW THIS or save frame
                 //isDetectingOnCamera.set(false);
                 detect(bitmap);
             }
@@ -304,5 +365,40 @@ public class CameraActivity extends Fragment {
         });
         requestQueue.add(jsonArrayRequest);
     }
+
+    public static void setTimeout(Runnable runnable, int delay){
+        new Thread(() -> {
+            try {
+                Thread.sleep(delay);
+                runnable.run();
+            }
+            catch (Exception e){
+                System.err.println(e);
+            }
+        }).start();
+    }
+    
+
+    private void saveImage(Bitmap finalBitmap, String image_name) {
+
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root);
+        myDir.mkdirs();
+        String fname = "Image-" + image_name+ ".jpg";
+        File file = new File(myDir, fname);
+        if (file.exists()) file.delete();
+        Log.i("LOAD", root + fname);
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
 }

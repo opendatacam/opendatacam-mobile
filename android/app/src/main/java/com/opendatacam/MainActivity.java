@@ -137,9 +137,12 @@ public class MainActivity extends BridgeActivity {
             e.printStackTrace();
           }
 
+
           startNodeWithArguments(new String[]{"node",
                   nodeDir+"/server.js"
           });
+
+
 
 
 
