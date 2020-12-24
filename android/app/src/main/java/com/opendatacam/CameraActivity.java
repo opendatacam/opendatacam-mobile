@@ -70,6 +70,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
+// Code inspired by android examples apps:
+// https://github.com/android/camera-samples/tree/main/CameraXBasic
+// https://github.com/android/camera-samples/tree/main/CameraXTfLite
+
 public class CameraActivity extends Fragment {
 
     private View view;
@@ -115,7 +119,7 @@ public class CameraActivity extends Fragment {
         public void onDisplayChanged(int displayId) {
             if (imageAnalysis != null) {
                 currentRotation = previewView.getDisplay().getRotation();
-                System.out.println("CameraActivity Rotation changed: " + currentRotation);
+                //System.out.println("CameraActivity Rotation changed: " + currentRotation);
                 imageAnalysis.setTargetRotation(currentRotation);
                 preview.setTargetRotation(currentRotation);
             }
@@ -178,15 +182,15 @@ public class CameraActivity extends Fragment {
         previewView.getDisplay().getRealMetrics(metrics);
 
         //Log.d("CameraActivity", "Screen metrics: " + metrics.widthPixels + " x " + metrics.heightPixels);
-        System.out.println("CameraActivity Screen metrics: " + metrics.widthPixels + " x " + metrics.heightPixels);
+        //System.out.println("CameraActivity Screen metrics: " + metrics.widthPixels + " x " + metrics.heightPixels);
 
         int screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
         //Log.d("CameraActivity", "Preview aspect ratio: " + screenAspectRatio);
-        System.out.println("CameraActivity Preview aspect ratio: " + screenAspectRatio);
+        //System.out.println("CameraActivity Preview aspect ratio: " + screenAspectRatio);
 
         currentRotation = previewView.getDisplay().getRotation();
 
-        System.out.println("CameraActivity: Rotation init " + currentRotation);
+        //System.out.println("CameraActivity: Rotation init " + currentRotation);
 
         preview = new Preview.Builder()
                 // We request aspect ratio but no resolution
@@ -215,7 +219,10 @@ public class CameraActivity extends Fragment {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
                 long start = System.currentTimeMillis();
 
-
+                // The roatationDegree value is computed by the imageAnalysis
+                // class.. ImageProxy contains the raw sensor image data without any rotation
+                // Depending on the current rotation of the device, it will compute the necessary
+                // rotation to get it upright..
                 detectOnModel(image, rotationDegrees);
                 image.close();
 
@@ -301,11 +308,12 @@ public class CameraActivity extends Fragment {
                 matrix.postRotate(rotationDegrees);
                 width = bitmapsrc.getWidth();
                 height = bitmapsrc.getHeight();
-                System.out.println("CameraActivity Detecting on image that is:");
-                System.out.println(width + "x" + height);
-                System.out.println("CameraActivity rotate " + rotationDegrees);
+                //System.out.println("CameraActivity Detecting on image that is:");
+                //System.out.println(width + "x" + height);
+                //System.out.println("CameraActivity rotate " + rotationDegrees);
                 Bitmap bitmap = Bitmap.createBitmap(bitmapsrc, 0, 0, width, height, matrix, false);
 
+                // To debug, take picture of the Bitmap sent to YOLO to see if correctly rotated
                 //saveImage(bitmap, "frame"+ new Date().toString());
 
                 // TODO PREVIEW THIS or save frame
