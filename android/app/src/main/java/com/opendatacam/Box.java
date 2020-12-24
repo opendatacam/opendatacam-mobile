@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class Box {
     public float x,y,width,height;
-    private int label;
+    private String label;
     private float score;
     private static String[] labels={"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
             "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
@@ -24,21 +24,8 @@ public class Box {
         this.y = y0;
         this.width = x1 - x0;
         this.height = y1 - y0;
-        this.label = label;
+        this.label = labels[label];
         this.score = score;
-    }
-
-    public String getLabel(){
-        return labels[label];
-    }
-
-    public float getScore(){
-        return score;
-    }
-
-    public int getColor(){
-        Random random = new Random(label);
-        return Color.argb(255,random.nextInt(256),random.nextInt(256),random.nextInt(256));
     }
 
     @Override
