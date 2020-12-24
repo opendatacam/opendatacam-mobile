@@ -27,8 +27,8 @@ private:
 
 //    static void nms(std::vector<BoxInfo>& result,float nms_threshold);
     ncnn::Net *Net;
-    int input_size_w = 192;
-    int input_size_h = 320;
+    int input_size_w = 320;
+    int input_size_h = 192;
     int num_class = 80;
 public:
     static YoloV4 *detector;
