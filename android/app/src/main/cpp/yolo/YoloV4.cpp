@@ -24,8 +24,8 @@ YoloV4::~YoloV4() {
 std::vector<BoxInfo> YoloV4::detect(JNIEnv *env, jobject image, float threshold, float nms_threshold) {
     AndroidBitmapInfo img_size;
     AndroidBitmap_getInfo(env, image, &img_size);
-    ncnn::Mat in_net = ncnn::Mat::from_android_bitmap_resize(env, image, ncnn::Mat::PIXEL_RGBA2RGB, input_size,
-                                                             input_size);
+    ncnn::Mat in_net = ncnn::Mat::from_android_bitmap_resize(env, image, ncnn::Mat::PIXEL_RGBA2RGB, input_size_w,
+                                                             input_size_h);
     float norm[3] = {1 / 255.f, 1 / 255.f, 1 / 255.f};
     float mean[3] = {0, 0, 0};
     in_net.substract_mean_normalize(mean, norm);
@@ -39,7 +39,7 @@ std::vector<BoxInfo> YoloV4::detect(JNIEnv *env, jobject image, float threshold,
     std::vector<BoxInfo> result;
     ncnn::Mat blob;
     ex.extract("output", blob);
-    auto boxes = decode_infer(blob, {(int) img_size.width, (int) img_size.height}, input_size, num_class, threshold);
+    auto boxes = decode_infer(blob, {(int) img_size.width, (int) img_size.height}, num_class, threshold);
     result.insert(result.begin(), boxes.begin(), boxes.end());
 //    nms(result,nms_threshold);
     return result;
@@ -59,7 +59,7 @@ inline float sigmoid(float x) {
 }
 
 std::vector<BoxInfo>
-YoloV4::decode_infer(ncnn::Mat &data, const yolocv::YoloSize &frame_size, int net_size, int num_classes, float threshold) {
+YoloV4::decode_infer(ncnn::Mat &data, const yolocv::YoloSize &frame_size, int num_classes, float threshold) {
     std::vector<BoxInfo> result;
     for (int i = 0; i < data.h; i++) {
         BoxInfo box;

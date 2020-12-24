@@ -23,11 +23,12 @@ public:
                                     "hair drier", "toothbrush"};
 private:
     static std::vector<BoxInfo>
-    decode_infer(ncnn::Mat &data, const yolocv::YoloSize &frame_size, int net_size, int num_classes, float threshold);
+    decode_infer(ncnn::Mat &data, const yolocv::YoloSize &frame_size, int num_classes, float threshold);
 
 //    static void nms(std::vector<BoxInfo>& result,float nms_threshold);
     ncnn::Net *Net;
-    int input_size = 640 / 2;
+    int input_size_w = 192;
+    int input_size_h = 320;
     int num_class = 80;
 public:
     static YoloV4 *detector;
