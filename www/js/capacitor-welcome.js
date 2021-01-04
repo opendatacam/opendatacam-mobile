@@ -70,8 +70,29 @@ window.customElements.define('capacitor-welcome', class extends HTMLElement {
         width: 100%;
         height: 100%;
       }
+
+      .main {
+        background-color: white;
+        display: flex;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+        padding: 20px;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      h2 {
+        margin: 0;
+        padding: 0;
+      }
     </style>
-    <h1>Starting Node.js server...</h1>
+    <div class="main">
+      <div>
+      <h2>Starting OpenDataCam 🙌... </h2>
+      <h3>(this takes 30-45s the first time you launch the app)<h3>
+      </div>
+    </div>
     `
   }
 });
