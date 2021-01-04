@@ -361,6 +361,7 @@ public class MainActivity extends BridgeActivity {
             .show();
   }
 
+  // Taken from this gist https://gist.github.com/wangsy/417e39ea24250958977c9538579c1d3e
   public void attachDownloadManagerToWebView(WebView webview) {
     webview.setDownloadListener(new DownloadListener() {
 
