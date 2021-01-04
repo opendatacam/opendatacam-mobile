@@ -2,6 +2,7 @@ package com.opendatacam;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -12,13 +13,18 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.webkit.DownloadListener;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -31,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -68,7 +75,7 @@ public class MainActivity extends BridgeActivity {
 
     if (checkPermission()) {
       mainlogic();
-
+      attachDownloadManagerToWebView(getBridge().getWebView());
     } else {
       requestPermission();
     }
@@ -353,4 +360,49 @@ public class MainActivity extends BridgeActivity {
             .create()
             .show();
   }
+
+  public void attachDownloadManagerToWebView(WebView webview) {
+    webview.setDownloadListener(new DownloadListener() {
+
+      @Override
+      public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+
+        try {
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+          request.setMimeType(mimeType);
+          request.addRequestHeader("User-Agent", userAgent);
+          request.setDescription("Downloading file in download directory");
+          String fileName = contentDisposition.replace("inline; filename=", "");
+          fileName = fileName.replaceAll(".+UTF-8''", "");
+          fileName = fileName.replaceAll("\"", "");
+          fileName = URLDecoder.decode(fileName, "UTF-8");
+          request.setTitle(fileName);
+          request.allowScanningByMediaScanner();
+          request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+          request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+          DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+          dm.enqueue(request);
+          Toast.makeText(getApplicationContext(), "Downloading File in download directory", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+
+          if (ContextCompat.checkSelfPermission(MainActivity.this,
+                  android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                  != PackageManager.PERMISSION_GRANTED) {
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+              Toast.makeText(getBaseContext(), "OpenDataCam needs your permission to be able to write file to the download folder", Toast.LENGTH_LONG).show();
+              ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                      110);
+            } else {
+              Toast.makeText(getBaseContext(), "OpenDataCam needs your permission to be able to write file to the download folder", Toast.LENGTH_LONG).show();
+              ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                      110);
+            }
+          }
+        }
+      }
+    });
+  }
+
 }
