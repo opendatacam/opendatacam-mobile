@@ -19,9 +19,10 @@ npx cap copy
 cd ../opendatacam
 # checkout mobile branch
 
-# build front-end code
+# build front-end code and export app as static
 npm i
 npm run build
+npm run export
 
 # prune node_module from dev dependencies
 npm prune --production
@@ -31,14 +32,14 @@ npm prune --production
 # delete previous zip
 rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip
 
-# zip new one
-zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -x ".git/*" ".github/*" "public/static/placeholder/*" "public/static/demo/*" "documentation/*" ".next/*" "apidoc/*" "docker/*" "script/*" "spec/*"
+# zip new one (only include necessary folders)
+zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -i "out/*" "node_modules/*" "server/*" "server.js" "package.json" "config.json" -x "out/static/placeholder/*" "out/static/demo/*" "node_modules/node-moving-things-tracker/benchmark/*"
 ```
 
 Full command
 
 ```bash
-npm i;npm run build;npm prune --production;rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip;zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -x ".git/*" ".github/*" "public/static/placeholder/*" "public/static/demo/*" "documentation/*" ".next/*" "apidoc/*" "docker/*" "script/*" "spec/*";
+npm i;npm run build;npm run export;npm prune --production;rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip;zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -i "out/*" "node_modules/*" "server/*" "server.js" "package.json" "config.json" -x "out/static/placeholder/*" "out/static/demo/*" "node_modules/node-moving-things-tracker/benchmark/*"
 ```
 
 ### Dev workflow
