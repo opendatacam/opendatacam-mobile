@@ -11,7 +11,9 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.display.DisplayManager;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -55,12 +57,6 @@ import com.android.volley.toolbox.Volley;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginRequestCodes;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationAvailability;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 
@@ -118,10 +114,8 @@ public class CameraActivity extends Fragment {
     private DisplayManager mDisplayManager;
 
 
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-    private boolean isLocationAvailable;
-    private Location lastLocationOfDevice;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
 
     /**
      * We need a display listener for orientation changes that do not trigger a configuration
@@ -182,16 +176,18 @@ public class CameraActivity extends Fragment {
 
         System.out.println("REQUEST PERMISSIONS");
 
+
+        initLocation();
+
         // Init location watcher
         if (ContextCompat.checkSelfPermission(
                 getContext(), Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
             System.out.println("PERMISSIONS GRANTED");
-            watchLocationUpdates();
-        }
-        else {
+            startWatchingLocation();
+        } else {
             // You can directly ask for the permission.
-            requestPermissions(new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     PluginRequestCodes.GEOLOCATION_REQUEST_PERMISSIONS);
             System.out.println("REQUEST PERMISSIONS");
         }
@@ -441,70 +437,57 @@ public class CameraActivity extends Fragment {
         }
     }
 
-    private void watchLocationUpdates() {
-        clearLocationUpdates();
-        boolean enableHighAccuracy = true;
-        int timeout = 10000;
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
-        LocationManager lm = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setMaxWaitTime(timeout);
-        locationRequest.setInterval(2000);
-        locationRequest.setFastestInterval(1000);
-        int priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
-        locationRequest.setPriority(priority);
+    public void initLocation() {
+        locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
 
-        locationCallback = new LocationCallback() {
+        locationListener = new LocationListener() {
             @Override
-            public void onLocationResult(LocationResult locationResult) {
-                System.out.println("LOCATION : onLocationResult");
-                Location lastLocation = locationResult.getLastLocation();
-                if (lastLocation == null) {
-                    System.out.println("LOCATION : location unavailable");
-                    isLocationAvailable = false;
-                } else {
-                    isLocationAvailable = true;
-                    lastLocationOfDevice = lastLocation;
-                    System.out.println("LOCATION : got location" + lastLocation.getLatitude() + "," + lastLocation.getLongitude());
-                    JSONArray locationData = new JSONArray();
-                    try {
-                        locationData.put(lastLocation.getLatitude());
-                        locationData.put(lastLocation.getLongitude());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    postCameraLocationData(locationData);
-
+            public void onLocationChanged(Location location) {
+                System.out.println("LOCATION : got location" + location.getLatitude() + "," + location.getLongitude());
+                JSONArray locationData = new JSONArray();
+                try {
+                    locationData.put(location.getLatitude());
+                    locationData.put(location.getLongitude());
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+
+                postCameraLocationData(locationData);
             }
 
             @Override
-            public void onLocationAvailability(LocationAvailability availability) {
-                System.out.println("LOCATION : onLocationAvailability");
-                if (!availability.isLocationAvailable()) {
-                    System.out.println("LOCATION : Location unavailable");
-                    isLocationAvailable = false;
-                    clearLocationUpdates();
-                }
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
             }
         };
+    }
 
+    public void startWatchingLocation() {
+
+        Criteria locationCriteria = new Criteria();
+        locationCriteria.setAccuracy(Criteria.ACCURACY_FINE);
+
+        String provider = locationManager.getBestProvider(locationCriteria, true);
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // shouldn't pass here as we already checked permissions
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        System.out.println("LOCATION : requestLocationUpdates");
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+        locationManager.requestLocationUpdates(provider, 0, 0, locationListener);
     }
 
-    private void clearLocationUpdates() {
-        if (locationCallback != null) {
-            System.out.println("LOCATION : clearLocationUpdates");
-            fusedLocationClient.removeLocationUpdates(locationCallback);
-            locationCallback = null;
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -515,7 +498,7 @@ public class CameraActivity extends Fragment {
                 if (grantResults.length > 0 &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission is granted. Continue the action or workflow
-                    watchLocationUpdates();
+                    startWatchingLocation();
                 }  else {
                     // Explain to the user that the feature is unavailable because
                     // the features requires a permission that the user has denied.
