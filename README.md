@@ -73,8 +73,8 @@ modified: server.js
 
 const port = parseInt(process.env.PORT, 10) || configHelper.getAppPort();
 const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dir: "/data/data/com.opendatacam/files/nodejs-project" })
-const app = next({ dev  })
+-const app = next({ dir: "/data/data/com.opendatacam/files/nodejs-project" })
++const app = next({ dev  })
 const handle = app.getRequestHandler();
 
 // Log config loaded
@@ -82,8 +82,8 @@ const handle = app.getRequestHandler();
     };
   }
 }
-// const YOLO = new YoloDarknet(yoloConfig);
-const YOLO = new YoloDarknet(yoloConfig);
+-// const YOLO = new YoloDarknet(yoloConfig);
++const YOLO = new YoloDarknet(yoloConfig);
 
 // Select tracker, based on GPS settings in config
 let tracker = Tracker;
@@ -94,12 +94,12 @@ modified: server/db/DBManagerNeDB.js
       });
     });
 
-    this.db[RECORDING_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_recording.db' });
-    this.db[TRACKER_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_tracker.db' });
-    this.db[APP_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_app.db' });
-    this.db[RECORDING_COLLECTION] = new Datastore({ filename: 'opendatacam_recording.db' });
-    this.db[TRACKER_COLLECTION] = new Datastore({ filename: 'opendatacam_tracker.db' });
-    this.db[APP_COLLECTION] = new Datastore({ filename: 'opendatacam_app.db' });
+    -this.db[RECORDING_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_recording.db' });
+    -this.db[TRACKER_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_tracker.db' });
+    -this.db[APP_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_app.db' });
+    +this.db[RECORDING_COLLECTION] = new Datastore({ filename: 'opendatacam_recording.db' });
+    +this.db[TRACKER_COLLECTION] = new Datastore({ filename: 'opendatacam_tracker.db' });
+    +this.db[APP_COLLECTION] = new Datastore({ filename: 'opendatacam_app.db' });
 
 
     await Promise.all([
