@@ -8,6 +8,7 @@ import java.util.Random;
 
 public class Box {
     public float x,y,width,height;
+    public float lon, lat;
     private String label;
     private float score;
     private static String[] labels={"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
