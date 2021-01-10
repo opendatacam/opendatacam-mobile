@@ -52,58 +52,18 @@ PS: I have issue with latest version of chrome.. if doesn't work download a old 
 
 use `/start` to start YOLO and then request again on `localhost:8080`
 
+Apply this patch: https://github.com/opendatacam/opendatacam/blob/mobile/mobile-branch-dev.patch
 
-```javascript
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-modified: config.json
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@ config.json:6 @
-  "PATH_TO_YOLO_DARKNET" : "TO_REPLACE_PATH_TO_DARKNET",
-  "CMD_TO_YOLO_DARKNET" : "TO_REPLACE_PATH_TO_DARKNET/darknet",
-  "VIDEO_UPLOAD_FOLDER": "TO_REPLACE_PATH_TO_DARKNET/opendatacam_videos_uploaded",
-  "VIDEO_INPUT": "TO_REPLACE_VIDEO_INPUT",
-  "VIDEO_INPUT": "simulation",
-  "NEURAL_NETWORK": "TO_REPLACE_NEURAL_NETWORK",
-  "VIDEO_INPUTS_PARAMS": {
-    "file": "opendatacam_videos/demo.mp4",
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-modified: server.js
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@ server.js:37 @ if (packageJson.version !== config.OPENDATACAM_VERSION) {
-
-const port = parseInt(process.env.PORT, 10) || configHelper.getAppPort();
-const dev = process.env.NODE_ENV !== 'production';
--const app = next({ dir: "/data/data/com.opendatacam/files/nodejs-project" })
-+const app = next({ dev  })
-const handle = app.getRequestHandler();
-
-// Log config loaded
-@ server.js:68 @ if (config.VIDEO_INPUT === 'simulation') {
-    };
-  }
-}
--// const YOLO = new YoloDarknet(yoloConfig);
-+const YOLO = new YoloDarknet(yoloConfig);
-
-// Select tracker, based on GPS settings in config
-let tracker = Tracker;
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-modified: server/db/DBManagerNeDB.js
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@ server/db/DBManagerNeDB.js:40 @ class DBManagerNeDB {
-      });
-    });
-
-    -this.db[RECORDING_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_recording.db' });
-    -this.db[TRACKER_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_tracker.db' });
-    -this.db[APP_COLLECTION] = new Datastore({ filename: '/data/data/com.opendatacam/files/opendatacam_app.db' });
-    +this.db[RECORDING_COLLECTION] = new Datastore({ filename: 'opendatacam_recording.db' });
-    +this.db[TRACKER_COLLECTION] = new Datastore({ filename: 'opendatacam_tracker.db' });
-    +this.db[APP_COLLECTION] = new Datastore({ filename: 'opendatacam_app.db' });
-
-
-    await Promise.all([
 ```
+git apply mobile-dev-branch.patch
+```
+
+This will:
+
+- renable next() on node.js side to serve front-end
+- change paths of NeDB location
+- renable YOLOSimulation
+- Mock cameraLocation
 
 ### Troubleshooting
 
