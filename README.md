@@ -64,6 +64,9 @@ This will:
 - change paths of NeDB location
 - renable YOLOSimulation
 - Mock cameraLocation
+- Display <WebcamStream> component in MainPage.js (when on android device we do not render it as the native code render the camera view)
+
+_To generate the patch `git diff > mobile-branch-dev.patch`, and then remove the part in the patch that create a diff of the patch itself..._
 
 ### Troubleshooting
 
