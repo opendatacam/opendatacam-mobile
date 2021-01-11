@@ -372,18 +372,20 @@ public class MainActivity extends BridgeActivity {
           DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
           request.setMimeType(mimeType);
           request.addRequestHeader("User-Agent", userAgent);
-          request.setDescription("Downloading file in download directory");
           String fileName = contentDisposition.replace("inline; filename=", "");
           fileName = fileName.replaceAll(".+UTF-8''", "");
           fileName = fileName.replaceAll("\"", "");
           fileName = URLDecoder.decode(fileName, "UTF-8");
+          // clean name
+          fileName = fileName.replace("attachment; filename=","");
+          request.setDescription("Downloading "+ fileName +" in the download folder");
           request.setTitle(fileName);
           request.allowScanningByMediaScanner();
           request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
           request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
           DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
           dm.enqueue(request);
-          Toast.makeText(getApplicationContext(), "Downloading File in download directory", Toast.LENGTH_LONG).show();
+          Toast.makeText(getApplicationContext(), "Downloading "+ fileName +" in the download folder", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
 
           if (ContextCompat.checkSelfPermission(MainActivity.this,
