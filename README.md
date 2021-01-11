@@ -55,7 +55,7 @@ use `/start` to start YOLO and then request again on `localhost:8080`
 Apply this patch: https://github.com/opendatacam/opendatacam/blob/mobile/mobile-branch-dev.patch
 
 ```
-git apply mobile-dev-branch.patch
+git apply mobile-branch-dev.patch    
 ```
 
 This will:
