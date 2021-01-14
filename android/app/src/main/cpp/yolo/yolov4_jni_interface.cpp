@@ -13,7 +13,11 @@
 
 #include <string>
 #include <vector>
-#include <ncnn/net.h>
+
+// ncnn
+#include "layer.h"
+#include "net.h"
+#include "benchmark.h"
 
 static ncnn::UnlockedPoolAllocator g_blob_pool_allocator;
 static ncnn::PoolAllocator g_workspace_pool_allocator;
