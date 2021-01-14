@@ -156,7 +156,7 @@ public class CameraActivity extends Fragment {
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
-        YOLOv4.init(getActivity().getAssets(), 0, false);
+        YOLOv4.init(getActivity().getAssets(), false);
 
 
         // Every time the orientation of device changes, update rotation for use cases
@@ -354,12 +354,14 @@ public class CameraActivity extends Fragment {
         });
     }
 
-    protected Box[] detect(Bitmap image) {
-        Box[] objectsDetected = null;
+    protected Bbox[] detect(Bitmap image) {
+        Bbox[] objectsDetected = null;
 
         //System.out.println("detecting on frame using YOLOv4.detect()");
 
         objectsDetected = YOLOv4.detect(image, threshold, nms_threshold);
+
+
 
         //System.out.println("detecting on frame sucess return result");
         //System.out.println(Arrays.toString(objectsDetected));

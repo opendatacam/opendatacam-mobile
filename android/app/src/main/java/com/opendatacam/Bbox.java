@@ -1,12 +1,6 @@
 package com.opendatacam;
 
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.RectF;
-
-import java.util.Random;
-
-public class Box {
+public class Bbox {
     public float x,y,width,height;
     public float lon, lat;
     private String label;
@@ -20,7 +14,7 @@ public class Box {
             "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
             "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
             "hair drier", "toothbrush"};
-    public Box(float x0,float y0, float x1, float y1, int label, float score){
+    public Bbox(float x0,float y0, float x1, float y1, int label, float score){
         this.x = x0;
         this.y = y0;
         this.width = x1 - x0;

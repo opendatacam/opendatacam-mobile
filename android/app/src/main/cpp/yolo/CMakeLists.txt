@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 add_library( # Sets the name of the library.
-        yolov5
+        yolov4
 
         # Sets the library as a shared library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        jni_interface.cpp
-        YoloV4.cpp
+        yolov4_jni_interface.cpp
         )
 
 include_directories(
@@ -49,7 +48,7 @@ set_target_properties(SPIRV PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ncn
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 target_link_libraries( # Specifies the target library.
-        yolov5
+        yolov4
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
