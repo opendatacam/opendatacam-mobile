@@ -77,3 +77,7 @@ _To generate the patch `git diff > mobile-branch-dev.patch`, and then remove the
 rm -rf android/app/.cxx/
 ```
 
+### External Dependencies
+
+- Neural network inference framework NCNN : https://github.com/Tencent/ncnn (LICENSE BSD 3-Clause)
+- Nodejs mobile : https://github.com/JaneaSystems/nodejs-mobile (LICENSE MIT)
