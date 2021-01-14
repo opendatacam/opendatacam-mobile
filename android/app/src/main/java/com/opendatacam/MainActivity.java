@@ -47,7 +47,7 @@ public class MainActivity extends BridgeActivity {
   private static final int PERMISSION_REQUEST_CODE = 200;
 
   static {
-    System.loadLibrary("native-lib");
+    System.loadLibrary("nodejsmobile");
     System.loadLibrary("node");
   }
 
@@ -161,7 +161,7 @@ public class MainActivity extends BridgeActivity {
   }
 
   /**
-   * A native method that is implemented by the 'native-lib' native library,
+   * A native method that is implemented by the 'nodejsmobile' native library,
    * which is packaged with this application.
    */
   public native void startNodeWithArguments(String[] arguments);
