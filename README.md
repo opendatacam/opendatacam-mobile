@@ -46,8 +46,6 @@ npm i;npm run build;npm run export;npm prune --production;rm ../opendatacam-mobi
 
 Open chrome, and open `chrome://inspect` , the webview should show up. 
 
-PS: I have issue with latest version of chrome.. if doesn't work download a old version, for example this browser is based on a old version of chrome: https://www.slimjet.com 
-
 #### diff for local development
 
 use `/start` to start YOLO and then request again on `localhost:8080`
