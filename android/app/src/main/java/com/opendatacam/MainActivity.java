@@ -62,16 +62,11 @@ public class MainActivity extends BridgeActivity {
     super.onCreate(savedInstanceState);
 
     // Initializes the Bridge
-    this.init(savedInstanceState, new ArrayList<Class<? extends Plugin>>() {{
+    this.init(savedInstanceState, new ArrayList<Class<? extends Plugin>>() {
       // Additional plugins you've installed go here
-      add(CameraObjectDetection.class);
-
-
-
-      //fragment = new CameraActivity();
-      //fragment.startCamera();
-
-    }});
+      // We don't use any capacitor plugin...
+      // could remove capacitor and just launch a classic webview
+    });
 
     if (checkPermission()) {
       mainlogic();
