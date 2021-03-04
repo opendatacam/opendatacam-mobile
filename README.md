@@ -1,14 +1,14 @@
-## OpenDataCam Mobile v1.0
+## OpenDataCam Mobile v1.0.0
 
-_OpenDataCam Mobile v1.0 was funded by [#MyGalileoSolution 2020 challenge](https://www.gsa.europa.eu/newsroom/news/mygalileosolution-projects-selected-acceleration), a context organized by [GSA, The European GNSS Agency](https://www.gsa.europa.eu/)_ 
+**[📲📲📲 Download it on Android 📲📲📲](https://play.google.com/store/apps/details?id=com.opendatacam)**
 
-Get it on Android https://play.google.com/store/apps/details?id=com.opendatacam
+_OpenDataCam Mobile v1.0.0 was funded by [#MyGalileoSolution 2020 challenge](https://www.gsa.europa.eu/newsroom/news/mygalileosolution-projects-selected-acceleration), a context organized by [GSA, The European GNSS Agency](https://www.gsa.europa.eu/)_ 
 
-![optimized1](https://user-images.githubusercontent.com/533590/109954625-d819fe00-7ce1-11eb-85ae-ba7da9d6fef6.jpg)
+[![optimized1](https://user-images.githubusercontent.com/533590/109954625-d819fe00-7ce1-11eb-85ae-ba7da9d6fef6.jpg)](https://play.google.com/store/apps/details?id=com.opendatacam)
 
-![unnamed](https://user-images.githubusercontent.com/533590/109954630-d9e3c180-7ce1-11eb-9d6e-12c42488e1ac.jpg)
+[![unnamed](https://user-images.githubusercontent.com/533590/109954630-d9e3c180-7ce1-11eb-9d6e-12c42488e1ac.jpg)](https://play.google.com/store/apps/details?id=com.opendatacam)
 
-### OpenDataCam
+### About
 
 OpenDataCam is an open source tool to quantify the world. It can detect, track and count objects on any video feed using AI. It is designed to be an accessible and affordable solution running locally on smartphones, desktop computers and IoT devices.
 
@@ -22,7 +22,7 @@ The OpenDataCam project respects data privacy in a transparent way. No data is r
 
 ### Technical notes
 
-OpenDataCam Mobile v1.0 is running `YOLOv4-tiny` using NCNN on CPU (320 x 192 input size)
+OpenDataCam Mobile v1.0.0 is running `YOLOv4-tiny` using NCNN on CPU (320 x 192 input size)
 
 See [Development notes](DEVELOPER_NOTES.md) if you want to customize it for your use.
 
