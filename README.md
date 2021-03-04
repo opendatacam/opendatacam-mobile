@@ -1,79 +1,30 @@
-## OpenDataCam Mobile
+## OpenDataCam Mobile v1.0
 
-### Documented diff between main repo (for the node.js / next.js part)
+_OpenDataCam Mobile v1.0 was funded by [#MyGalileoSolution 2020 challenge](https://www.gsa.europa.eu/newsroom/news/mygalileosolution-projects-selected-acceleration), a context organized by [GSA, The European GNSS Agency](https://www.gsa.europa.eu/)_ 
 
-Diff between main opendatacam node.js app and node.js app for mobile
+Get it on Android https://play.google.com/store/apps/details?id=com.opendatacam
 
-https://github.com/opendatacam/opendatacam/compare/development...mobile
+![optimized1](https://user-images.githubusercontent.com/533590/109954625-d819fe00-7ce1-11eb-85ae-ba7da9d6fef6.jpg)
 
-Will need to build adapters / if(Android) in the code to have the same codebase
+![unnamed](https://user-images.githubusercontent.com/533590/109954630-d9e3c180-7ce1-11eb-9d6e-12c42488e1ac.jpg)
 
-### Build app
+### OpenDataCam
 
-```bash
+OpenDataCam is an open source tool to quantify the world. It can detect, track and count objects on any video feed using AI. It is designed to be an accessible and affordable solution running locally on smartphones, desktop computers and IoT devices.
 
-# Copy web assets to native projects
-npx cap copy
+OpenDataCam never records any photo or video data. The system only saves surveyed meta-data, in particular the path an object moved or number of counted objects at a certain point. The novelty of OpenDataCam is, that everything happens on location, while no visual data is saved or sent to online cloud processing.
 
-# Go to main opendatacam project to build the node.js app
-cd ../opendatacam
-# checkout mobile branch
+All software is based on open source components and runs completely locally. The software features a friendly user interface and is currently optimised for detecting and counting traffic participants, but is not limited to that.
 
-# build front-end code and export app as static
-npm i
-npm run build
-npm run export
+Both software and hardware setup are documented and offered as an open source project, to underline transparency and full disclosure on privacy questions.
 
-# prune node_module from dev dependencies
-npm prune --production
+The OpenDataCam project respects data privacy in a transparent way. No data is required to be send to the cloud. OpenDataCam was successfully used for a wide range of use-cases from urban mobility, assets management to nature conservation.
 
-# pack as a zip (ignore useless folder) and put in assets folder of the mobile project
+### Technical notes
 
-# delete previous zip
-rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip
+OpenDataCam Mobile v1.0 is running `YOLOv4-tiny` using NCNN on CPU (320 x 192 input size)
 
-# zip new one (only include necessary folders)
-zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -i "out/*" "node_modules/*" "server/*" "server.js" "package.json" "config.json" -x "out/static/placeholder/*" "out/static/demo/*" "node_modules/node-moving-things-tracker/benchmark/*"
-```
-
-Full command
-
-```bash
-npm i;npm run build;npm run export;npm prune --production;rm ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip;zip -0 -r ../opendatacam-mobile/android/app/src/main/assets/nodejs-project.zip . -i "out/*" "node_modules/*" "server/*" "server.js" "package.json" "config.json" -x "out/static/placeholder/*" "out/static/demo/*" "node_modules/node-moving-things-tracker/benchmark/*"
-```
-
-### Dev workflow
-
-Open chrome, and open `chrome://inspect` , the webview should show up. 
-
-#### diff for local development
-
-use `/start` to start YOLO and then request again on `localhost:8080`
-
-Apply this patch: https://github.com/opendatacam/opendatacam/blob/mobile/mobile-branch-dev.patch
-
-```
-git apply mobile-branch-dev.patch    
-```
-
-This will:
-
-- renable next() on node.js side to serve front-end
-- change paths of NeDB location
-- renable YOLOSimulation
-- Mock cameraLocation
-- Display <WebcamStream> component in MainPage.js (when on android device we do not render it as the native code render the camera view)
-
-_To generate the patch `git diff > mobile-branch-dev.patch`, and then remove the part in the patch that create a diff of the patch itself..._
-
-### Troubleshooting
-
-#### Infinite cmake loop on android build
-
-```
-# remove android/app/.cxx folder
-rm -rf android/app/.cxx/
-```
+See [Development notes](DEVELOPER_NOTES.md) if you want to customize it for your use.
 
 ### External Dependencies
 
