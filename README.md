@@ -2,7 +2,7 @@
 
 **[📲📲📲 Download it on Android 📲📲📲](https://play.google.com/store/apps/details?id=com.opendatacam)**
 
-_OpenDataCam Mobile v1.0.0 was funded by [#MyGalileoSolution 2020 challenge](https://www.gsa.europa.eu/newsroom/news/mygalileosolution-projects-selected-acceleration), a context organized by [GSA, The European GNSS Agency](https://www.gsa.europa.eu/)_ 
+_OpenDataCam Mobile v1.0.0 was funded by [#MyGalileoSolution 2020 challenge](https://www.gsa.europa.eu/newsroom/news/mygalileosolution-projects-selected-acceleration), a contest organized by [GSA, The European GNSS Agency](https://www.gsa.europa.eu/)_ 
 
 [![optimized1](https://user-images.githubusercontent.com/533590/109954625-d819fe00-7ce1-11eb-85ae-ba7da9d6fef6.jpg)](https://play.google.com/store/apps/details?id=com.opendatacam)
 
