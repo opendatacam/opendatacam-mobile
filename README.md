@@ -1,3 +1,11 @@
+# ⚠️ OpenDataCam Mobile developement has stopped ⚠️
+
+The OpenDataCam Mobile fork for is no longer under active development. This repository was therefore archived and put into "read only" mode. Should someone volunteer to maintain the OpenDataCam Mobile repository, please reach out to [@vsaw](https://github.com/vsaw).
+
+OpenDataCam itself is continued being developed at the main [OpenDataCam repository](https://github.com/opendatacam/opendatacam).
+
+----
+
 ## OpenDataCam Mobile v1.0.0
 
 **[📲📲📲 Download it on Android 📲📲📲](https://play.google.com/store/apps/details?id=com.opendatacam)**
